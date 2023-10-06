@@ -3,23 +3,43 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
-#define MAX_HEALTH	10
+#define	ALERT_LEVEL_MAX	3
 
+/// <summary>
+/// Basic Entity class - represents any interactible object on the player map, including players, enemies, walls, tiles, treasure etc.
+/// </summary>
 class Entity
 {
 public:
-	Entity(int x, int y) : maxHealth(MAX_HEALTH), isAlive(true) {}
+	typedef struct
+	{
+		int x;
+		int y;
+	} Position;
+
+protected:
+	Position position;
+};
+
+/// <summary>
+/// Inherits from Entity. Class that offers basic behaviour of any "human" object on the map - either the player or an enemy.
+/// </summary>
+class Character : public Entity
+{
+public:
+	enum Movement { UP, DOWN, LEFT, RIGHT, NOTHING };	//	Current entity movement direction
+
+	Character(int x, int y);
 	void TakeDamage();
 	void Attack();
 	void Move();
+	void Die();
 
 private:
-	int		health;
-	int		maxHealth;
+	int			health;
+	int			maxHealth;
 
-	int		position[2];
-
-	bool	isAlive;
+	bool		isAlive;
 };
 
 #endif

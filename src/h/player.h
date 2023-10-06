@@ -5,19 +5,17 @@
 
 #include "entity.h"
 
-#define MAX_DETECTION 3
-
-class Player : public Entity
+/// <summary>
+/// The player character. Inherits from Character class.
+/// </summary>
+class Player : public Character
 {
 public:
-	Player(int x, int y) : Entity(x, y), maxDetection(MAX_DETECTION)
-	{
-		currDetection = maxDetection;
-	}
+	Player(int x, int y) : Character(x, y), currDetection(0), hasKey(false) {}
 
 private:
-	int currDetection;
-	int maxDetection;
+	int		currDetection;
+	bool	hasKey;
 };
 
 #endif

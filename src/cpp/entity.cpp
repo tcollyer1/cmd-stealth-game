@@ -1,24 +1,30 @@
 #include "..\h\entity.h"
 
-Entity::Entity(int x, int y)
+Character::Character(int x, int y)
 {
-	// Calculate position somehow
-	// ...
-
-	health = maxHealth;
+	position.x	= x;
+	position.y	= y;
+	maxHealth	= 10;
+	isAlive		= true;
+	health		= maxHealth;
 }
 
-void Entity::TakeDamage()
-{
-
-}
-
-void Entity::Attack()
+void Character::TakeDamage()
 {
 
 }
 
-void Entity::Move()
+void Character::Attack()
 {
 
+}
+
+void Character::Move()
+{
+
+}
+
+void Character::Die()
+{
+	delete this;
 }

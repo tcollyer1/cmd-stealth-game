@@ -1,6 +1,8 @@
 #include <iostream>
 
+using namespace std;
+
 int main()
 {
-    std::cout << "Initial commit\n";
+    cout << "Game loop here\n";
 }
