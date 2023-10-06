@@ -84,6 +84,8 @@ Game::Game()
 	Map* map = new Map(2, p, treasure, exit);
 
 	pMap = map;
+
+	running = true;
 }
 
 void Game::Setup()
@@ -93,10 +95,20 @@ void Game::Setup()
 
 void Game::Run()
 {
-	Setup();
+	while (running)
+	{
+		Setup();
+		Sleep(1000);
+	}
+	
 }
 
 void Game::ProcessInput()
 {
 	// Process user input here
+}
+
+void Game::EndGame()
+{
+	// Delete map, entities etc.
 }

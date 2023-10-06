@@ -32,6 +32,9 @@ private:
 	// Entity entities[height][width] <-- Need an array of all ENTITIES on the map. Probably need malloc/calloc for this
 };
 
+/// <summary>
+/// Main Game class. Responsible for game loop & setting up/ending game
+/// </summary>
 class Game : public Entity
 {
 public:
@@ -43,6 +46,9 @@ private:
 
 	void Setup();			//	Set up map etc., call in Run()
 	void ProcessInput();	// Process user commands
+	void EndGame();
+
+	bool running;
 };
 
 #endif
