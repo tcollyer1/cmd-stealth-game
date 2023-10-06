@@ -17,7 +17,6 @@ public:
 		int y;
 	} Position;
 
-	void SetSymbol(char symbol);
 	char GetSymbol();
 
 	bool GetIfPassable();
@@ -27,7 +26,9 @@ public:
 protected:
 	Position	position;
 	char		symbol;
-	bool		passable;
+	bool		passable;	// Indicates whether this entity can be passed through by other entities (player/enemy), such as floor
+
+	void		SetSymbol(char symbol);
 };
 
 /// <summary>
@@ -36,7 +37,7 @@ protected:
 class Character : public Entity
 {
 public:
-	enum Movement { UP, DOWN, LEFT, RIGHT, NOTHING };	//	Current entity movement direction
+	enum Movement { UP, DOWN, LEFT, RIGHT, NOTHING };	// Current entity movement direction
 
 	Character(int x, int y);
 	void TakeDamage();

@@ -71,7 +71,6 @@ Game::Game()
 {
 	// Temp - will generate this
 	Player* p = new Player(2, 2);
-	p->SetSymbol('P');
 
 	Position treasure, exit;
 
