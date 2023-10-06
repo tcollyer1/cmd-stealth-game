@@ -19,15 +19,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\cpp\enemy.cpp" />
     <ClCompile Include="src\cpp\entity.cpp" />
+    <ClCompile Include="src\cpp\env.cpp" />
     <ClCompile Include="src\cpp\main.cpp" />
-    <ClCompile Include="src\cpp\environment.cpp" />
+    <ClCompile Include="src\cpp\game.cpp" />
     <ClCompile Include="src\cpp\player.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\h\enemy.h" />
     <ClInclude Include="src\h\entity.h" />
-    <ClInclude Include="src\h\environment.h" />
+    <ClInclude Include="src\h\env.h" />
+    <ClInclude Include="src\h\game.h" />
     <ClInclude Include="src\h\player.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

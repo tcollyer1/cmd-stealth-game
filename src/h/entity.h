@@ -17,8 +17,17 @@ public:
 		int y;
 	} Position;
 
+	void SetSymbol(char symbol);
+	char GetSymbol();
+
+	bool GetIfPassable();
+
+	Position GetPosition();
+
 protected:
-	Position position;
+	Position	position;
+	char		symbol;
+	bool		passable;
 };
 
 /// <summary>

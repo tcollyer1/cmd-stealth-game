@@ -1,5 +1,25 @@
 #include "..\h\entity.h"
 
+void Entity::SetSymbol(char symbol)
+{
+	this->symbol = symbol;
+}
+
+Entity::Position Entity::GetPosition()
+{
+	return (position);
+}
+
+char Entity::GetSymbol()
+{
+	return (symbol);
+}
+
+bool Entity::GetIfPassable()
+{
+	return (passable);
+}
+
 Character::Character(int x, int y)
 {
 	position.x	= x;
@@ -19,6 +39,7 @@ void Character::Attack()
 
 }
 
+// Possibly virtual. Enemies will move differently to the player
 void Character::Move()
 {
 

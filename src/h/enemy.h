@@ -11,7 +11,13 @@ class Enemy : public Character
 public:
 	enum Direction { NORTH, EAST, SOUTH, WEST };	//	Direction enemy is facing
 
-	Enemy(int x, int y, bool hasKey) : Character(x, y), alertLevel(0), hasKey(hasKey) {}
+	Enemy(int x, int y, bool hasKey) : Character(x, y), alertLevel(0), hasKey(hasKey)
+	{
+		passable = false;
+	}
+
+	int		GetAlertLevel();
+	bool	GetIfHasKey();
 
 private:
 	int		alertLevel;
