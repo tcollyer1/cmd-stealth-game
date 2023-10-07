@@ -36,8 +36,6 @@ protected:
 
 	void			SetSymbol(char symbol);
 	void			SetColour(int colour);
-
-	bool			GetIfAtPosition(Position pos);
 };
 
 /// <summary>

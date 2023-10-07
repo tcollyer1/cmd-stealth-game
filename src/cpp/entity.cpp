@@ -18,11 +18,6 @@ Entity::Position Entity::GetPosition()
 	return (position);
 }
 
-bool Entity::GetIfAtPosition(Position pos)
-{
-	return ((GetPosition().x == pos.x) && (GetPosition().y == pos.y));
-}
-
 char Entity::GetSymbol()
 {
 	return (symbol);
