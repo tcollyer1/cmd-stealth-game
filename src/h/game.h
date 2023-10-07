@@ -3,33 +3,41 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include <vector>
+
 #include "entity.h"
 #include "player.h"
+#include "enemy.h"
+#include "env.h"
+
+using namespace std;
 
 /// <summary>
-/// Class that stores information about every tile on the map, including player & enemy positions.
+/// Class that stores information about every entity on the map, including player & enemy positions.
 /// </summary>
 class Map : public Entity
 {
 public:
-	enum class ObjectType { PLAYER, ENEMY, TREASURE };
-
-	Map(int enemies, Player* player, Position treasurePos, Position exitPos);
-	void Draw();
+	Map(int enemies, Player* player, Treasure* treasure, Exit* exit);
+	void DrawEmptyMap();
+	void DrawContent();
 
 private:
 	Map();
-	bool PlayerAtPosition(Position pos);
+	void WriteEntity(Entity* entity);
 
-	int			enemies;	//	Number of enemies on the map
-	Position	treasurePos;
-	Position	exitPos;
-	Player*		pPlayer;
+	int				numEnemies;	//	Number of enemies on the map
 
-	int			height;
-	int			width;
+	Player*			pPlayer;
+	Treasure*		pTreasure;
+	Exit*			pExit;
 
-	// Entity entities[height][width] <-- Need an array of all ENTITIES on the map. Probably need malloc/calloc for this
+	vector<Tile>	tiles;
+	vector<Wall>	walls;
+	vector<Enemy>	enemies;
+
+	int				height;
+	int				width;
 };
 
 /// <summary>
@@ -39,12 +47,12 @@ class Game : public Entity
 {
 public:
 	Game();
-	void Run();		//	Will keep game loop going
+	void Run();		// Will keep game loop going
 
 private:
 	Map* pMap;
 
-	void Setup();			//	Set up map etc., call in Run()
+	void Setup();			// Set up map etc., call in Run()
 	void ProcessInput();	// Process user commands
 	void EndGame();
 

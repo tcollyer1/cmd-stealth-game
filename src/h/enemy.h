@@ -14,6 +14,8 @@ public:
 	Enemy(int x, int y, bool hasKey) : Character(x, y), alertLevel(0), hasKey(hasKey)
 	{
 		passable = false;
+		SetSymbol('E');
+		SetColour(13);
 	}
 
 	int		GetAlertLevel();

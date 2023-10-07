@@ -1,8 +1,16 @@
 #include "..\h\entity.h"
+#include <iostream>
+
+using namespace std;
 
 void Entity::SetSymbol(char symbol)
 {
 	this->symbol = symbol;
+}
+
+void Entity::SetColour(int colour)
+{
+	this->colour = colour;
 }
 
 Entity::Position Entity::GetPosition()
@@ -10,14 +18,29 @@ Entity::Position Entity::GetPosition()
 	return (position);
 }
 
+bool Entity::GetIfAtPosition(Position pos)
+{
+	return ((GetPosition().x == pos.x) && (GetPosition().y == pos.y));
+}
+
 char Entity::GetSymbol()
 {
 	return (symbol);
 }
 
+int Entity::GetColour()
+{
+	return (colour);
+}
+
 bool Entity::GetIfPassable()
 {
 	return (passable);
+}
+
+void Entity::DrawEntity()
+{
+	cout << symbol;
 }
 
 Character::Character(int x, int y)

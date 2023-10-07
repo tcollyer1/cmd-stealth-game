@@ -4,6 +4,8 @@
 #define ENTITY_H
 
 #define	ALERT_LEVEL_MAX	3
+#define GAME_HEIGHT		20
+#define GAME_WIDTH		50
 
 /// <summary>
 /// Basic Entity class - represents any interactible object on the player map, including players, enemies, walls, tiles, treasure etc.
@@ -17,18 +19,25 @@ public:
 		int y;
 	} Position;
 
-	char GetSymbol();
+	char			GetSymbol();
+	int				GetColour();
 
-	bool GetIfPassable();
+	bool			GetIfPassable();
 
-	Position GetPosition();
+	Position		GetPosition();
+
+	void			DrawEntity();
 
 protected:
-	Position	position;
-	char		symbol;
-	bool		passable;	// Indicates whether this entity can be passed through by other entities (player/enemy), such as floor
+	Position		position;
+	char			symbol;
+	int				colour;
+	bool			passable;	// Indicates whether this entity can be passed through by other entities (player/enemy), such as floor
 
-	void		SetSymbol(char symbol);
+	void			SetSymbol(char symbol);
+	void			SetColour(int colour);
+
+	bool			GetIfAtPosition(Position pos);
 };
 
 /// <summary>

@@ -1,34 +1,59 @@
 #include <windows.h>
 #include <iostream>
+#include <conio.h>
 
 #include "..\h\game.h"
+#include "..\h\env.h"
 
-using namespace std;
-
-Map::Map(int enemies, Player* player, Position treasurePos, Position exitPos)
+Map::Map(int enemies, Player* player, Treasure* treasure, Exit* exit)
 {
-	this->enemies		= enemies;
-	pPlayer				= player;
-	this->treasurePos	= treasurePos;
-	this->exitPos		= exitPos;
+	numEnemies	= enemies;
+	pPlayer		= player;
+	pTreasure	= treasure;
+	pExit		= exit;
 
-	//	FOR NOW, hard coded
-	height	= 20;
-	width	= 50;
+	// FOR NOW, hard coded
+	height	= GAME_HEIGHT;
+	width	= GAME_WIDTH;
 }
 
 /// <summary>
-/// Draws the map to the screen.
+/// Writes entities to the map.
 /// </summary>
-void Map::Draw()
+/// <param name="entity">Pointer to the entity to write</param>
+void Map::WriteEntity(Entity* entity)
+{
+	static HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+	cout.flush();
+
+	COORD coords = { (SHORT)entity->GetPosition().x, (SHORT)entity->GetPosition().y };
+	SetConsoleCursorPosition(handle, coords);
+	SetConsoleTextAttribute(handle, entity->GetColour());
+
+	entity->DrawEntity();
+
+	SetConsoleTextAttribute(handle, 7);
+}
+
+void Map::DrawEmptyMap()
 {
 	int i, x, y;
 	Position currentPos;
 
+	currentPos.x = 0;
+	currentPos.y = 0;
+
+	Wall wall = Wall(0,0);
+	Tile tile = Tile(currentPos, true, Tile::HARD, Tile::BRIGHT);
+
 	system("cls");
 	for (i = 0; i < width + 2; i++)
 	{
-		cout << '#';
+		wall = Wall(0, i);
+		currentPos.y = i;
+		wall.DrawEntity();
+
+		walls.push_back(wall);
 	}
 	cout << "\n";
 
@@ -39,48 +64,53 @@ void Map::Draw()
 			currentPos.x = x;
 			currentPos.y = y;
 
-			if (PlayerAtPosition(currentPos))
+			if ((x == 0) || (x == width + 1))
 			{
-				cout << pPlayer->GetSymbol();
-			}
-			else if ((x == 0) || (x == width + 1))
-			{
-				cout << '#';
+				wall = Wall(currentPos.x, currentPos.y);
+				wall.DrawEntity();
+
+				walls.push_back(wall);
 			}
 			else
 			{
-				cout << ' ';
-			}
+				tile = Tile(currentPos, true, Tile::HARD, Tile::BRIGHT);
+				tile.DrawEntity();
+
+				tiles.push_back(tile);
+			}			
 		}
 		cout << '\n';
 	}
 
 	for (i = 0; i < width + 2; i++)
 	{
-		cout << '#';
+		wall = Wall(0, i);
+		currentPos.y = i;
+		wall.DrawEntity();
+
+		walls.push_back(wall);
 	}
 	cout << '\n';
 }
 
-bool Map::PlayerAtPosition(Position pos)
+/// <summary>
+/// Draws the map content to the screen.
+/// </summary>
+void Map::DrawContent()
 {
-	return ((pPlayer->GetPosition().x == pos.x) && (pPlayer->GetPosition().y == pos.y));
+	WriteEntity(pPlayer);
+	WriteEntity(pTreasure);
+	WriteEntity(pExit);
 }
 
 Game::Game()
 {
 	// Temp - will generate this
-	Player* p = new Player(2, 2);
+	Player*		p = new Player(5, 2);
+	Treasure*	t = new Treasure(10, 15);
+	Exit*		e = new Exit(20, 4);
 
-	Position treasure, exit;
-
-	treasure.x = 10;
-	treasure.y = 15;
-
-	exit.x = 20;
-	exit.y = 4;
-
-	Map* map = new Map(2, p, treasure, exit);
+	Map* map = new Map(2, p, t, e);
 
 	pMap = map;
 
@@ -89,7 +119,8 @@ Game::Game()
 
 void Game::Setup()
 {
-	pMap->Draw();
+	pMap->DrawEmptyMap();
+	pMap->DrawContent();
 }
 
 void Game::Run()

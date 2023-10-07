@@ -15,6 +15,7 @@ public:
 	{
 		passable = false;
 		SetSymbol('P');
+		SetColour(11);
 	}
 
 private:

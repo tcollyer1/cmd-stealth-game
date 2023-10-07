@@ -11,10 +11,7 @@
 class Treasure : public Entity
 {
 public:
-	Treasure() : opened(false)
-	{
-		passable = false;
-	}
+	Treasure(int x, int y);
 
 private:
 	bool opened;
@@ -26,19 +23,19 @@ private:
 class Exit : public Entity
 {
 public:
-	Exit() : triggered(false)
-	{
-		passable = true;
-	}
+	Exit(int x, int y);
 
 private:
 	bool triggered;
 };
 
+/// <summary>
+/// Defines walls (map boundaries).
+/// </summary>
 class Wall : public Entity
 {
 public:
-	Wall();
+	Wall(int x, int y);
 };
 
 /// <summary>
@@ -47,18 +44,18 @@ public:
 class Tile : public Entity
 {
 public:
-	enum class TerrainType { HARD, SOFT };
-	enum class LightLevel { BRIGHT, MEDIUM, DARK };
+	enum TerrainType { HARD, SOFT };
+	enum LightLevel { BRIGHT, MEDIUM, DARK };
 
 	Tile(Position position, bool isWalkable, TerrainType terrain, LightLevel lightLevel) : position(position), isWalkable(isWalkable), terrain(terrain), lightLevel(lightLevel)
 	{
-		passable = true;
+		passable	= true;
+		symbol		= ' ';
 	}
 
 	bool GetIfWalkable();
 
 private:
-	Tile();
 	Position	position;
 	bool		isWalkable;
 	TerrainType	terrain;
