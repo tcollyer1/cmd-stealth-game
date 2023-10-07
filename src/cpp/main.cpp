@@ -1,6 +1,13 @@
 #include <iostream>
 
+#include "..\h\game.h"
+
+using namespace std;
+
 int main()
 {
-    std::cout << "Initial commit\n";
+    cout << "Game loop here\n";
+    Game game;
+
+    game.Run();
 }
