@@ -6,6 +6,9 @@
 #define	ALERT_LEVEL_MAX	3
 #define GAME_HEIGHT		20
 #define GAME_WIDTH		50
+#define MAX_ENEMIES		5
+
+#define GAME_SIZE (GAME_HEIGHT * GAME_WIDTH)
 
 /// <summary>
 /// Basic Entity class - represents any interactible object on the player map, including players, enemies, walls, tiles, treasure etc.
@@ -18,6 +21,15 @@ public:
 		bool operator==(const Position& otherPos)
 		{
 			return (x == otherPos.x && y == otherPos.y);
+		}
+
+		// Not working
+		Position& operator=(const Position& otherPos)
+		{
+			x = otherPos.x;
+			y = otherPos.y;
+
+			return *this;
 		}
 
 		int x;

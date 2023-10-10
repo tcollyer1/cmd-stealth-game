@@ -15,16 +15,16 @@ using namespace std;
 /// <summary>
 /// Class that stores information about every entity on the map, including player & enemy positions.
 /// </summary>
-class Map
+class GameMap
 {
 public:
-	Map(int enemies, Player* player, Treasure* treasure, Exit* exit);
+	GameMap(int enemies, Player* player, Treasure* treasure, Exit* exit);
 	void		SetUpMap();
 	void		DrawContent();
 	void		RequestMove(Character::Movement move);
 
 private:
-	Map();
+	GameMap();
 	void	WriteEntity(Entity* entity);
 	bool	GetIfTraversable(Entity::Position pos);
 
@@ -35,9 +35,9 @@ private:
 	Exit*			pExit;
 
 	vector<Entity*> entities;
-	vector<Tile>	tiles;
-	vector<Wall>	walls;
-	vector<Enemy>	enemies;
+	vector<Tile*>	tiles;
+	vector<Wall*>	walls;
+	vector<Enemy*>	enemies;
 
 	int				height;
 	int				width;
@@ -53,7 +53,7 @@ public:
 	void Run();		// Will keep game loop going
 
 private:
-	Map* pMap;
+	GameMap* pMap;
 
 	void Setup();			// Set up map etc., call in Run()
 	void ProcessInput();	// Process user commands

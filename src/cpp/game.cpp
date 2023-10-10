@@ -5,7 +5,7 @@
 #include "..\h\game.h"
 #include "..\h\env.h"
 
-Map::Map(int enemies, Player* player, Treasure* treasure, Exit* exit)
+GameMap::GameMap(int enemies, Player* player, Treasure* treasure, Exit* exit)
 {
 	numEnemies	= enemies;
 	pPlayer		= player;
@@ -21,7 +21,7 @@ Map::Map(int enemies, Player* player, Treasure* treasure, Exit* exit)
 /// Writes entities to the map.
 /// </summary>
 /// <param name="entity">Pointer to the entity to write</param>
-void Map::WriteEntity(Entity* entity)
+void GameMap::WriteEntity(Entity* entity)
 {
 	static HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	cout.flush();
@@ -35,16 +35,13 @@ void Map::WriteEntity(Entity* entity)
 	SetConsoleTextAttribute(handle, 7);
 }
 
-void Map::SetUpMap()
+void GameMap::SetUpMap()
 {
 	int i, x, y;
 	Entity::Position currentPos;
 
 	currentPos.x = 0;
 	currentPos.y = 0;
-
-	Wall wall = Wall(0,0);
-	Tile tile = Tile(currentPos, true, Tile::HARD, Tile::BRIGHT);
 
 	entities.push_back(pPlayer);
 	entities.push_back(pTreasure);
@@ -53,13 +50,13 @@ void Map::SetUpMap()
 	system("cls");
 	for (i = 0; i < width + 2; i++)
 	{
-		wall = Wall(0, i);
+		Wall* wall = new Wall(0, i);
 		currentPos.y = i;
-		wall.DrawEntity();
+		wall->DrawEntity();
 
 		walls.push_back(wall);
 
-		entities.push_back(&wall);	//	This will NOT work... Needs to be pointers
+		entities.push_back(wall);
 	}
 	cout << "\n";
 
@@ -72,21 +69,21 @@ void Map::SetUpMap()
 
 			if ((x == 0) || (x == width + 1))
 			{
-				wall = Wall(currentPos.x, currentPos.y);
-				wall.DrawEntity();
+				Wall* wall = new Wall(currentPos.x, currentPos.y);
+				wall->DrawEntity();
 
 				walls.push_back(wall);
 
-				entities.push_back(&wall);
+				entities.push_back(wall);
 			}
 			else
 			{
-				tile = Tile(currentPos, true, Tile::HARD, Tile::BRIGHT);
-				tile.DrawEntity();
+				Tile* tile = new Tile(currentPos, true, Tile::HARD, Tile::BRIGHT);
+				tile->DrawEntity();
 
 				tiles.push_back(tile);
 
-				entities.push_back(&tile);
+				entities.push_back(tile);
 			}			
 		}
 		cout << '\n';
@@ -94,34 +91,45 @@ void Map::SetUpMap()
 
 	for (i = 0; i < width + 2; i++)
 	{
-		wall = Wall(0, i);
+		Wall* wall = new Wall(0, i);
 		currentPos.y = i;
-		wall.DrawEntity();
+		wall->DrawEntity();
 
 		walls.push_back(wall);
 
-		entities.push_back(&wall);
+		entities.push_back(wall);
 	}
 	cout << '\n';
+
+
 }
 
 /// <summary>
 /// Draws the map content to the screen.
 /// </summary>
-void Map::DrawContent()
+void GameMap::DrawContent()
 {
 	WriteEntity(pPlayer);
 	WriteEntity(pTreasure);
 	WriteEntity(pExit);
 }
 
-void Map::RequestMove(Character::Movement move)
+void GameMap::RequestMove(Character::Movement move)
 {
-	Entity::Position pos = pPlayer->CalculatePos(move);
+	Entity::Position oldPos = pPlayer->GetPosition();
+	Entity::Position newPos = pPlayer->CalculatePos(move);
 
-	if (GetIfTraversable(pos))
+	if (GetIfTraversable(newPos))
 	{
-		pPlayer->Move(pos);
+		for (int i = 0; i < tiles.size(); i++)
+		{
+			if (tiles[i]->GetPosition() == oldPos)
+			{
+				WriteEntity(tiles[i]);
+			}
+		}
+		pPlayer->Move(newPos);
+		WriteEntity(pPlayer);
 	}
 }
 
@@ -130,7 +138,7 @@ void Map::RequestMove(Character::Movement move)
 /// </summary>
 /// <param name="pos">Desired position</param>
 /// <returns>True/false</returns>
-bool Map::GetIfTraversable(Entity::Position pos)
+bool GameMap::GetIfTraversable(Entity::Position pos)
 {
 	bool traversable	= false;
 	bool found			= false;
@@ -143,6 +151,8 @@ bool Map::GetIfTraversable(Entity::Position pos)
 			traversable = entities[i]->GetIfPassable();
 			found = true;
 		}
+
+		i++;
 	}
 
 	//if (pPlayer->GetPosition() == pos)
@@ -208,11 +218,11 @@ bool Map::GetIfTraversable(Entity::Position pos)
 Game::Game()
 {
 	// Temp - will generate this
-	Player*		p = new Player(5, 2);
+	Player*		p = new Player(2, 2);
 	Treasure*	t = new Treasure(10, 15);
 	Exit*		e = new Exit(20, 4);
 
-	Map* map = new Map(2, p, t, e);
+	GameMap* map = new GameMap(2, p, t, e);
 
 	pMap = map;
 

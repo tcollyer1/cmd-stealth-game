@@ -47,16 +47,11 @@ public:
 	enum TerrainType { HARD, SOFT };
 	enum LightLevel { BRIGHT, MEDIUM, DARK };
 
-	Tile(Position position, bool isWalkable, TerrainType terrain, LightLevel lightLevel) : position(position), isWalkable(isWalkable), terrain(terrain), lightLevel(lightLevel)
-	{
-		passable	= true;
-		symbol		= ' ';
-	}
+	Tile(Position position, bool isWalkable, TerrainType terrain, LightLevel lightLevel);
 
 	bool GetIfWalkable();
 
 private:
-	Position	position;
 	bool		isWalkable;
 	TerrainType	terrain;
 	LightLevel	lightLevel;

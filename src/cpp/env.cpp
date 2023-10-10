@@ -5,14 +5,25 @@ bool Tile::GetIfWalkable()
 	return (isWalkable);
 }
 
+Tile::Tile(Position position, bool isWalkable, TerrainType terrain, LightLevel lightLevel)
+{
+	this->position = position;
+	this->isWalkable = isWalkable;
+	this->terrain = terrain;
+	this->lightLevel = lightLevel;
+	passable = true;
+	symbol = ' ';
+	colour = 17; // Eventually to be determined by tile type
+}
+
 Wall::Wall(int x, int y)
 {
-	passable	= true;
+	passable	= false;
 	position.x	= x;
 	position.y	= y;
 
-	SetSymbol('#');
-	SetColour(15);
+	symbol = '#';
+	colour = 15;
 }
 
 Treasure::Treasure(int x, int y)
@@ -22,8 +33,8 @@ Treasure::Treasure(int x, int y)
 	position.x	= x;
 	position.y	= y;
 
-	SetSymbol('T');
-	SetColour(6);
+	symbol = 'T';
+	colour = 6;
 }
 
 Exit::Exit(int x, int y)
@@ -33,6 +44,6 @@ Exit::Exit(int x, int y)
 	position.x	= x;
 	position.y	= y;
 
-	SetSymbol('E');
-	SetColour(13);
+	symbol = 'E';
+	colour = 13;
 }
