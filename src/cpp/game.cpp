@@ -48,10 +48,10 @@ void GameMap::SetUpMap()
 	entities.push_back(pExit);
 
 	system("cls");
-	for (i = 0; i < width + 2; i++)
+	for (i = 0; i < width + 2; i++)	// +2 for left/right map boundary
 	{
-		Wall* wall = new Wall(0, i);
-		currentPos.y = i;
+		currentPos.x = i;
+		Wall* wall = new Wall(currentPos.x, currentPos.y);
 		wall->DrawEntity();
 
 		walls.push_back(wall);
@@ -60,7 +60,7 @@ void GameMap::SetUpMap()
 	}
 	cout << "\n";
 
-	for (y = 0; y < height - 1; y++)
+	for (y = 1; y <= height; y++)
 	{
 		for (x = 0; x < width + 2; x++)
 		{
@@ -89,10 +89,13 @@ void GameMap::SetUpMap()
 		cout << '\n';
 	}
 
+	currentPos.y = height + 2;	// +2 for top/bottom map boundary
+
 	for (i = 0; i < width + 2; i++)
 	{
-		Wall* wall = new Wall(0, i);
-		currentPos.y = i;
+		currentPos.x = i;
+
+		Wall* wall = new Wall(currentPos.x, currentPos.y);
 		wall->DrawEntity();
 
 		walls.push_back(wall);
@@ -155,70 +158,13 @@ bool GameMap::GetIfTraversable(Entity::Position pos)
 		i++;
 	}
 
-	//if (pPlayer->GetPosition() == pos)
-	//{
-	//	traversable = pPlayer->GetIfPassable();
-	//}
-
-	//else if (pTreasure->GetPosition() == pos)
-	//{
-	//	traversable = pTreasure->GetIfPassable();
-	//}
-
-	//else if (pExit->GetPosition() == pos)
-	//{
-	//	traversable = pExit->GetIfPassable();
-	//}
-
-	//else
-	//{
-	//	int i = 0;
-	//	while (i < walls.size() && !found)
-	//	{
-	//		if (walls[i].GetPosition() == pos)
-	//		{
-	//			traversable = walls[i].GetIfPassable();
-	//			found = true;
-	//		}
-
-	//		i++;
-	//	}
-
-	//	i = 0;
-
-	//	// Check enemies before tiles - enemies can temporarily overwrite tiles
-	//	while (i < enemies.size() && !found)
-	//	{
-	//		if (enemies[i].GetPosition() == pos)
-	//		{
-	//			traversable = enemies[i].GetIfPassable();
-	//			found = true;
-	//		}
-
-	//		i++;
-	//	}
-
-	//	i = 0;
-
-	//	while (i < tiles.size() && !found)
-	//	{
-	//		if (tiles[i].GetPosition() == pos)
-	//		{
-	//			traversable = tiles[i].GetIfPassable();
-	//			found = true;
-	//		}
-
-	//		i++;
-	//	}
-	//}
-
 	return (traversable);
 }
 
 Game::Game()
 {
 	// Temp - will generate this
-	Player*		p = new Player(2, 2);
+	Player*		p = new Player(2, 19);
 	Treasure*	t = new Treasure(10, 15);
 	Exit*		e = new Exit(20, 4);
 
@@ -242,7 +188,7 @@ void Game::Run()
 	{
 		Setup();
 		ProcessInput();
-		Sleep(1000);
+		Sleep(100);
 	}
 	
 }
