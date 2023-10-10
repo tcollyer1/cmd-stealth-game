@@ -42,9 +42,32 @@ Character::Character(int x, int y)
 {
 	position.x	= x;
 	position.y	= y;
-	maxHealth	= 10;
 	isAlive		= true;
-	health		= maxHealth;
+}
+
+Entity::Position Character::CalculatePos(Movement move)
+{
+	Position pos = GetPosition();
+
+	switch (move)
+	{
+	case UP:
+		pos.y--;
+		break;
+	case DOWN:
+		pos.y++;
+		break;
+	case LEFT:
+		pos.x--;
+		break;
+	case RIGHT:
+		pos.x++;
+		break;
+	default:
+		break;
+	}
+
+	return (pos);
 }
 
 void Character::TakeDamage()
@@ -57,10 +80,10 @@ void Character::Attack()
 
 }
 
-// Possibly virtual. Enemies will move differently to the player
-void Character::Move()
+// Possibly virtual. Enemies might move differently to the player(?)
+void Character::Move(Position pos)
 {
-
+	position = pos;
 }
 
 void Character::Die()

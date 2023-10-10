@@ -13,11 +13,16 @@
 class Entity
 {
 public:
-	typedef struct
+	struct Position
 	{
+		bool operator==(const Position& otherPos)
+		{
+			return (x == otherPos.x && y == otherPos.y);
+		}
+
 		int x;
 		int y;
-	} Position;
+	};
 
 	char			GetSymbol();
 	int				GetColour();
@@ -44,18 +49,17 @@ protected:
 class Character : public Entity
 {
 public:
-	enum Movement { UP, DOWN, LEFT, RIGHT, NOTHING };	// Current entity movement direction
+	enum Movement { UP, DOWN, LEFT, RIGHT, NOTHING };	// Entity movement direction
 
 	Character(int x, int y);
-	void TakeDamage();
-	void Attack();
-	void Move();
-	void Die();
+	void		TakeDamage();
+	void		Attack();
+	Position	CalculatePos(Movement move);
+	void		Move(Position pos);
+	void		Die();
 
 private:
-	int			health;
-	int			maxHealth;
-
+	Character();
 	bool		isAlive;
 };
 

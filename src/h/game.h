@@ -15,16 +15,18 @@ using namespace std;
 /// <summary>
 /// Class that stores information about every entity on the map, including player & enemy positions.
 /// </summary>
-class Map : public Entity
+class Map
 {
 public:
 	Map(int enemies, Player* player, Treasure* treasure, Exit* exit);
-	void DrawEmptyMap();
-	void DrawContent();
+	void		SetUpMap();
+	void		DrawContent();
+	void		RequestMove(Character::Movement move);
 
 private:
 	Map();
-	void WriteEntity(Entity* entity);
+	void	WriteEntity(Entity* entity);
+	bool	GetIfTraversable(Entity::Position pos);
 
 	int				numEnemies;	//	Number of enemies on the map
 
@@ -32,6 +34,7 @@ private:
 	Treasure*		pTreasure;
 	Exit*			pExit;
 
+	vector<Entity*> entities;
 	vector<Tile>	tiles;
 	vector<Wall>	walls;
 	vector<Enemy>	enemies;
@@ -43,7 +46,7 @@ private:
 /// <summary>
 /// Main Game class. Responsible for game loop & setting up/ending game
 /// </summary>
-class Game : public Entity
+class Game
 {
 public:
 	Game();

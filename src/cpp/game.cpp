@@ -35,16 +35,20 @@ void Map::WriteEntity(Entity* entity)
 	SetConsoleTextAttribute(handle, 7);
 }
 
-void Map::DrawEmptyMap()
+void Map::SetUpMap()
 {
 	int i, x, y;
-	Position currentPos;
+	Entity::Position currentPos;
 
 	currentPos.x = 0;
 	currentPos.y = 0;
 
 	Wall wall = Wall(0,0);
 	Tile tile = Tile(currentPos, true, Tile::HARD, Tile::BRIGHT);
+
+	entities.push_back(pPlayer);
+	entities.push_back(pTreasure);
+	entities.push_back(pExit);
 
 	system("cls");
 	for (i = 0; i < width + 2; i++)
@@ -54,6 +58,8 @@ void Map::DrawEmptyMap()
 		wall.DrawEntity();
 
 		walls.push_back(wall);
+
+		entities.push_back(&wall);	//	This will NOT work... Needs to be pointers
 	}
 	cout << "\n";
 
@@ -70,6 +76,8 @@ void Map::DrawEmptyMap()
 				wall.DrawEntity();
 
 				walls.push_back(wall);
+
+				entities.push_back(&wall);
 			}
 			else
 			{
@@ -77,6 +85,8 @@ void Map::DrawEmptyMap()
 				tile.DrawEntity();
 
 				tiles.push_back(tile);
+
+				entities.push_back(&tile);
 			}			
 		}
 		cout << '\n';
@@ -89,6 +99,8 @@ void Map::DrawEmptyMap()
 		wall.DrawEntity();
 
 		walls.push_back(wall);
+
+		entities.push_back(&wall);
 	}
 	cout << '\n';
 }
@@ -101,6 +113,96 @@ void Map::DrawContent()
 	WriteEntity(pPlayer);
 	WriteEntity(pTreasure);
 	WriteEntity(pExit);
+}
+
+void Map::RequestMove(Character::Movement move)
+{
+	Entity::Position pos = pPlayer->CalculatePos(move);
+
+	if (GetIfTraversable(pos))
+	{
+		pPlayer->Move(pos);
+	}
+}
+
+/// <summary>
+/// Returns whether a Character can move to a specified position or not.
+/// </summary>
+/// <param name="pos">Desired position</param>
+/// <returns>True/false</returns>
+bool Map::GetIfTraversable(Entity::Position pos)
+{
+	bool traversable	= false;
+	bool found			= false;
+	int i = 0;
+
+	while (i < (int)entities.size() && !found)
+	{
+		if (entities[i]->GetPosition() == pos)
+		{
+			traversable = entities[i]->GetIfPassable();
+			found = true;
+		}
+	}
+
+	//if (pPlayer->GetPosition() == pos)
+	//{
+	//	traversable = pPlayer->GetIfPassable();
+	//}
+
+	//else if (pTreasure->GetPosition() == pos)
+	//{
+	//	traversable = pTreasure->GetIfPassable();
+	//}
+
+	//else if (pExit->GetPosition() == pos)
+	//{
+	//	traversable = pExit->GetIfPassable();
+	//}
+
+	//else
+	//{
+	//	int i = 0;
+	//	while (i < walls.size() && !found)
+	//	{
+	//		if (walls[i].GetPosition() == pos)
+	//		{
+	//			traversable = walls[i].GetIfPassable();
+	//			found = true;
+	//		}
+
+	//		i++;
+	//	}
+
+	//	i = 0;
+
+	//	// Check enemies before tiles - enemies can temporarily overwrite tiles
+	//	while (i < enemies.size() && !found)
+	//	{
+	//		if (enemies[i].GetPosition() == pos)
+	//		{
+	//			traversable = enemies[i].GetIfPassable();
+	//			found = true;
+	//		}
+
+	//		i++;
+	//	}
+
+	//	i = 0;
+
+	//	while (i < tiles.size() && !found)
+	//	{
+	//		if (tiles[i].GetPosition() == pos)
+	//		{
+	//			traversable = tiles[i].GetIfPassable();
+	//			found = true;
+	//		}
+
+	//		i++;
+	//	}
+	//}
+
+	return (traversable);
 }
 
 Game::Game()
@@ -119,15 +221,17 @@ Game::Game()
 
 void Game::Setup()
 {
-	pMap->DrawEmptyMap();
 	pMap->DrawContent();
 }
 
 void Game::Run()
 {
+	pMap->SetUpMap();
+
 	while (running)
 	{
 		Setup();
+		ProcessInput();
 		Sleep(1000);
 	}
 	
@@ -136,6 +240,26 @@ void Game::Run()
 void Game::ProcessInput()
 {
 	// Process user input here
+	if (_kbhit())
+	{
+		switch (_getch())
+		{
+		case 'w':
+			pMap->RequestMove(Character::UP);
+			break;
+		case 's':
+			pMap->RequestMove(Character::DOWN);
+			break;
+		case 'a':
+			pMap->RequestMove(Character::LEFT);
+			break;
+		case 'd':
+			pMap->RequestMove(Character::RIGHT);
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 void Game::EndGame()
