@@ -70,16 +70,6 @@ Entity::Position Character::CalculatePos(Movement move)
 	return (pos);
 }
 
-void Character::TakeDamage()
-{
-
-}
-
-void Character::Attack()
-{
-
-}
-
 // Possibly virtual. Enemies might move differently to the player(?)
 void Character::Move(Position pos)
 {

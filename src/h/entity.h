@@ -63,8 +63,6 @@ public:
 	enum Movement { UP, DOWN, LEFT, RIGHT, NOTHING };	// Entity movement direction
 
 	Character(int x, int y);
-	void		TakeDamage();
-	void		Attack();
 	Position	CalculatePos(Movement move);
 	void		Move(Position pos);
 	void		Die();

@@ -42,8 +42,6 @@ void GameMap::WriteEntity(Entity* entity)
 	SetConsoleTextAttribute(handle, entity->GetColour());
 
 	entity->DrawEntity();
-
-	//SetConsoleTextAttribute(handle, 7);
 }
 
 void GameMap::SetUpMap()
@@ -143,6 +141,7 @@ void GameMap::RequestMove(Character::Movement move)
 
 	if (GetIfTraversable(newPos))
 	{
+		// Player must previously have been on a walkable tile, so therefore replace it with whatever existing tile was there
 		while (i < tiles.size() && !found)
 		{
 			if (tiles[i]->GetPosition() == oldPos)
@@ -186,10 +185,11 @@ bool GameMap::GetIfTraversable(Entity::Position pos)
 
 Game::Game()
 {
+	// Make the console cursor invisible
 	CONSOLE_CURSOR_INFO cursorInfo;
 
 	GetConsoleCursorInfo(handle, &cursorInfo);
-	cursorInfo.bVisible = false; // Disable visible cursor
+	cursorInfo.bVisible = false;
 	SetConsoleCursorInfo(handle, &cursorInfo);
 
 	// Temp - will generate this
@@ -220,7 +220,7 @@ void Game::Run()
 	{
 		GameLoop();
 		ProcessInput();
-		Sleep(100);
+		Sleep(50);
 	}
 	
 }

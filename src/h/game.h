@@ -55,7 +55,7 @@ public:
 private:
 	GameMap* pMap;
 
-	void GameLoop();			// Set up map etc., call in Run()
+	void GameLoop();		// Set up map etc., call in Run()
 	void ProcessInput();	// Process user commands
 	void EndGame();
 
