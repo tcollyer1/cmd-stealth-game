@@ -18,11 +18,6 @@ Entity::Position Entity::GetPosition()
 	return (position);
 }
 
-bool Entity::GetIfAtPosition(Position pos)
-{
-	return ((GetPosition().x == pos.x) && (GetPosition().y == pos.y));
-}
-
 char Entity::GetSymbol()
 {
 	return (symbol);
@@ -40,32 +35,45 @@ bool Entity::GetIfPassable()
 
 void Entity::DrawEntity()
 {
-	cout << symbol;
+	wcout << symbol;
 }
 
 Character::Character(int x, int y)
 {
 	position.x	= x;
 	position.y	= y;
-	maxHealth	= 10;
 	isAlive		= true;
-	health		= maxHealth;
 }
 
-void Character::TakeDamage()
+Entity::Position Character::CalculatePos(Movement move)
 {
+	Position pos = GetPosition();
 
+	switch (move)
+	{
+	case UP:
+		pos.y--;
+		break;
+	case DOWN:
+		pos.y++;
+		break;
+	case LEFT:
+		pos.x--;
+		break;
+	case RIGHT:
+		pos.x++;
+		break;
+	default:
+		break;
+	}
+
+	return (pos);
 }
 
-void Character::Attack()
+// Possibly virtual. Enemies might move differently to the player(?)
+void Character::Move(Position pos)
 {
-
-}
-
-// Possibly virtual. Enemies will move differently to the player
-void Character::Move()
-{
-
+	position = pos;
 }
 
 void Character::Die()
