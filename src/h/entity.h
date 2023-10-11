@@ -23,14 +23,13 @@ public:
 			return (x == otherPos.x && y == otherPos.y);
 		}
 
-		// Not working
-		Position& operator=(const Position& otherPos)
+		/*Position& operator=(const Position& otherPos)
 		{
 			x = otherPos.x;
 			y = otherPos.y;
 
 			return *this;
-		}
+		}*/
 
 		int x;
 		int y;

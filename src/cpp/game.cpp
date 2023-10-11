@@ -32,7 +32,7 @@ void GameMap::WriteEntity(Entity* entity)
 
 	entity->DrawEntity();
 
-	SetConsoleTextAttribute(handle, 7);
+	//SetConsoleTextAttribute(handle, 7);
 }
 
 void GameMap::SetUpMap()
@@ -52,7 +52,7 @@ void GameMap::SetUpMap()
 	{
 		currentPos.x = i;
 		Wall* wall = new Wall(currentPos.x, currentPos.y);
-		wall->DrawEntity();
+		WriteEntity(wall);
 
 		walls.push_back(wall);
 
@@ -70,7 +70,7 @@ void GameMap::SetUpMap()
 			if ((x == 0) || (x == width + 1))
 			{
 				Wall* wall = new Wall(currentPos.x, currentPos.y);
-				wall->DrawEntity();
+				WriteEntity(wall);
 
 				walls.push_back(wall);
 
@@ -79,7 +79,7 @@ void GameMap::SetUpMap()
 			else
 			{
 				Tile* tile = new Tile(currentPos, true, Tile::HARD, Tile::BRIGHT);
-				tile->DrawEntity();
+				WriteEntity(tile);
 
 				tiles.push_back(tile);
 
@@ -89,14 +89,14 @@ void GameMap::SetUpMap()
 		cout << '\n';
 	}
 
-	currentPos.y = height + 2;	// +2 for top/bottom map boundary
+	currentPos.y = height + 1;	// +1 for top map boundary
 
 	for (i = 0; i < width + 2; i++)
 	{
 		currentPos.x = i;
 
 		Wall* wall = new Wall(currentPos.x, currentPos.y);
-		wall->DrawEntity();
+		WriteEntity(wall);
 
 		walls.push_back(wall);
 
@@ -212,6 +212,9 @@ void Game::ProcessInput()
 		case 'd':
 			pMap->RequestMove(Character::RIGHT);
 			break;
+		case 'e':
+			EndGame();
+			break;
 		default:
 			break;
 		}
@@ -221,4 +224,7 @@ void Game::ProcessInput()
 void Game::EndGame()
 {
 	// Delete map, entities etc.
+	running = false;
+	system("cls");
+	cout << "Thanks for playing!";
 }

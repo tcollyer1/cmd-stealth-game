@@ -12,8 +12,8 @@ Tile::Tile(Position position, bool isWalkable, TerrainType terrain, LightLevel l
 	this->terrain = terrain;
 	this->lightLevel = lightLevel;
 	passable = true;
-	symbol = ' ';
-	colour = 17; // Eventually to be determined by tile type
+	symbol = '.';
+	colour = 8; // Eventually to be determined by tile type
 }
 
 Wall::Wall(int x, int y)
@@ -22,7 +22,7 @@ Wall::Wall(int x, int y)
 	position.x	= x;
 	position.y	= y;
 
-	symbol = '#';
+	symbol = '@';
 	colour = 15;
 }
 
