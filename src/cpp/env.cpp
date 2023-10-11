@@ -1,19 +1,13 @@
 #include "..\h\env.h"
 
-bool Tile::GetIfWalkable()
+Tile::Tile(Position position, TerrainType terrain, LightLevel lightLevel)
 {
-	return (isWalkable);
-}
-
-Tile::Tile(Position position, bool isWalkable, TerrainType terrain, LightLevel lightLevel)
-{
-	this->position = position;
-	this->isWalkable = isWalkable;
-	this->terrain = terrain;
-	this->lightLevel = lightLevel;
-	passable = true;
-	symbol = '.';
-	colour = 8; // Eventually to be determined by tile type
+	this->position		= position;
+	this->terrain		= terrain;
+	this->lightLevel	= lightLevel;
+	passable			= true;
+	symbol				= ' ';
+	colour				= 8; // Eventually to be determined by tile type
 }
 
 Wall::Wall(int x, int y)

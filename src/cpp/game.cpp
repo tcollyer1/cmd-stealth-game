@@ -5,6 +5,8 @@
 #include "..\h\game.h"
 #include "..\h\env.h"
 
+HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE); // Global for standard reuse
+
 GameMap::GameMap(int enemies, Player* player, Treasure* treasure, Exit* exit)
 {
 	numEnemies	= enemies;
@@ -22,11 +24,11 @@ GameMap::GameMap(int enemies, Player* player, Treasure* treasure, Exit* exit)
 /// </summary>
 /// <param name="entity">Pointer to the entity to write</param>
 void GameMap::WriteEntity(Entity* entity)
-{
-	static HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+{	
 	cout.flush();
 
 	COORD coords = { (SHORT)entity->GetPosition().x, (SHORT)entity->GetPosition().y };
+
 	SetConsoleCursorPosition(handle, coords);
 	SetConsoleTextAttribute(handle, entity->GetColour());
 
@@ -78,7 +80,7 @@ void GameMap::SetUpMap()
 			}
 			else
 			{
-				Tile* tile = new Tile(currentPos, true, Tile::HARD, Tile::BRIGHT);
+				Tile* tile = new Tile(currentPos, Tile::HARD, Tile::BRIGHT);
 				WriteEntity(tile);
 
 				tiles.push_back(tile);
@@ -163,6 +165,12 @@ bool GameMap::GetIfTraversable(Entity::Position pos)
 
 Game::Game()
 {
+	CONSOLE_CURSOR_INFO cursorInfo;
+
+	GetConsoleCursorInfo(handle, &cursorInfo);
+	cursorInfo.bVisible = false; // Disable visible cursor
+	SetConsoleCursorInfo(handle, &cursorInfo);
+
 	// Temp - will generate this
 	Player*		p = new Player(2, 19);
 	Treasure*	t = new Treasure(10, 15);
