@@ -1,11 +1,11 @@
-#include <windows.h>
+﻿#include <windows.h>
 #include <iostream>
 #include <conio.h>
 
 #include "..\h\game.h"
 #include "..\h\env.h"
 
-HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE); // Global for standard reuse
+static HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE); // Global for standard reuse
 
 GameMap::GameMap(int enemies, Player* player, Treasure* treasure, Exit* exit)
 {
@@ -14,7 +14,16 @@ GameMap::GameMap(int enemies, Player* player, Treasure* treasure, Exit* exit)
 	pTreasure	= treasure;
 	pExit		= exit;
 
-	// FOR NOW, hard coded
+	// Will use int enemies to determine how many to generate and generate (semi-) random positions - this is all temp
+	Enemy* e1 = new Enemy(40, 5, false);
+	Enemy* e2 = new Enemy(42, 12, true);
+
+	this->enemies.push_back(e1);
+	this->enemies.push_back(e2);
+
+	entities.push_back(e1);
+	entities.push_back(e2);
+
 	height	= GAME_HEIGHT;
 	width	= GAME_WIDTH;
 }
@@ -60,7 +69,7 @@ void GameMap::SetUpMap()
 
 		entities.push_back(wall);
 	}
-	cout << "\n";
+	wcout << "\n";
 
 	for (y = 1; y <= height; y++)
 	{
@@ -88,7 +97,7 @@ void GameMap::SetUpMap()
 				entities.push_back(tile);
 			}			
 		}
-		cout << '\n';
+		wcout << '\n';
 	}
 
 	currentPos.y = height + 1;	// +1 for top map boundary
@@ -104,7 +113,7 @@ void GameMap::SetUpMap()
 
 		entities.push_back(wall);
 	}
-	cout << '\n';
+	wcout << '\n';
 
 
 }
@@ -117,6 +126,11 @@ void GameMap::DrawContent()
 	WriteEntity(pPlayer);
 	WriteEntity(pTreasure);
 	WriteEntity(pExit);
+
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		WriteEntity(enemies[i]);
+	}
 }
 
 void GameMap::RequestMove(Character::Movement move)
@@ -124,15 +138,22 @@ void GameMap::RequestMove(Character::Movement move)
 	Entity::Position oldPos = pPlayer->GetPosition();
 	Entity::Position newPos = pPlayer->CalculatePos(move);
 
+	int		i		= 0;
+	bool	found	= false;
+
 	if (GetIfTraversable(newPos))
 	{
-		for (int i = 0; i < tiles.size(); i++)
+		while (i < tiles.size() && !found)
 		{
 			if (tiles[i]->GetPosition() == oldPos)
 			{
 				WriteEntity(tiles[i]);
+				found = true;
 			}
+
+			i++;
 		}
+
 		pPlayer->Move(newPos);
 		WriteEntity(pPlayer);
 	}
@@ -183,18 +204,21 @@ Game::Game()
 	running = true;
 }
 
-void Game::Setup()
+void Game::GameLoop()
 {
-	pMap->DrawContent();
+	pMap->DrawContent(); // Update map
 }
 
+/// <summary>
+/// Everything needed to run the game - the main entry point.
+/// </summary>
 void Game::Run()
 {
 	pMap->SetUpMap();
 
 	while (running)
 	{
-		Setup();
+		GameLoop();
 		ProcessInput();
 		Sleep(100);
 	}
@@ -203,7 +227,6 @@ void Game::Run()
 
 void Game::ProcessInput()
 {
-	// Process user input here
 	if (_kbhit())
 	{
 		switch (_getch())
@@ -234,5 +257,5 @@ void Game::EndGame()
 	// Delete map, entities etc.
 	running = false;
 	system("cls");
-	cout << "Thanks for playing!";
+	wcout << "Thanks for playing!";
 }

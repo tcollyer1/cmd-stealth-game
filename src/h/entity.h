@@ -3,7 +3,7 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
-#define	ALERT_LEVEL_MAX	3
+#define	ALERT_LEVEL_MAX	2
 #define GAME_HEIGHT		20
 #define GAME_WIDTH		50
 #define MAX_ENEMIES		5
@@ -42,7 +42,7 @@ public:
 
 	Position		GetPosition();
 
-	void			DrawEntity();
+	virtual void	DrawEntity();
 
 protected:
 	Position		position;

@@ -35,7 +35,7 @@ bool Entity::GetIfPassable()
 
 void Entity::DrawEntity()
 {
-	cout << symbol;
+	wcout << symbol;
 }
 
 Character::Character(int x, int y)
