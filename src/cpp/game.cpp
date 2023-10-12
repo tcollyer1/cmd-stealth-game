@@ -178,7 +178,7 @@ void GameMap::MoveEnemy(Character::Movement move, Enemy* enemy)
 			i++;
 		}
 
-		enemy->Move(newPos, move);
+		enemy->Move(newPos, move); // Needs to change so that this func can be merged with RequestPlayerMove()
 	}
 }
 
