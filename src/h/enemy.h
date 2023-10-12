@@ -30,15 +30,14 @@ public:
 	int				GetAlertLevel();
 	bool			GetIfHasKey();
 	virtual void	DrawEntity() override;
+	void			Move(Position pos, Movement move);
 
 private:
 	wstring		strSymbol;	// For Unicode arrow characters
 	int			alertLevel;
 	bool		hasKey;
 	Direction	dir;
-	void		UpdateSymbol();
-
-	void		UpdateMapSymbol(Movement move);
+	void		UpdateSymbol(); // Not needed?
 };
 
 #endif

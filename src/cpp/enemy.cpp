@@ -54,38 +54,27 @@ void Enemy::UpdateSymbol()
 	}
 }
 
-// Temp - need to rework this to be useful for the Map to set the position when moving
-void Enemy::UpdateMapSymbol(Movement move)
+void Enemy::Move(Position pos, Movement move)
 {
+	position = pos;
+
 	switch (move)
 	{
 	case UP:
-		symbol = '↑';
+		dir = NORTH;
 		break;
 	case DOWN:
-		symbol = '↓';
+		dir = SOUTH;
 		break;
 	case LEFT:
-		symbol = '←';
+		dir = WEST;
 		break;
 	case RIGHT:
-		symbol = '→';
+		dir = EAST;
 		break;
 	default:
 		break;
 	}
 
-	// Should replace this with an enum
-	switch (alertLevel)
-	{
-	case 0:
-		colour = 6;
-		break;
-	case 1:
-		colour = 14;
-		break;
-	case 2:
-		colour = 12;
-		break;
-	}
+	UpdateSymbol();
 }

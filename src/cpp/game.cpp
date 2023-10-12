@@ -114,7 +114,7 @@ void GameMap::SetUpMap()
 }
 
 /// <summary>
-/// Draws the map content to the screen.
+/// Draws the current map content to the screen on refresh.
 /// </summary>
 void GameMap::DrawContent()
 {
@@ -128,7 +128,7 @@ void GameMap::DrawContent()
 	}
 }
 
-void GameMap::RequestMove(Character::Movement move)
+void GameMap::RequestPlayerMove(Character::Movement move)
 {
 	Entity::Position oldPos = pPlayer->GetPosition();
 	Entity::Position newPos = pPlayer->CalculatePos(move);
@@ -151,7 +151,34 @@ void GameMap::RequestMove(Character::Movement move)
 		}
 
 		pPlayer->Move(newPos);
-		WriteEntity(pPlayer);
+		//WriteEntity(pPlayer);
+	}
+}
+
+// Possibly merge this with RequestPlayerMove() somehow...
+void GameMap::MoveEnemy(Character::Movement move, Enemy* enemy)
+{
+	Entity::Position oldPos = enemy->GetPosition();
+	Entity::Position newPos = enemy->CalculatePos(move);
+
+	int		i = 0;
+	bool	found = false;
+
+	if (GetIfTraversable(newPos))
+	{
+		// Enemy must previously have been on a walkable tile, so therefore replace it with whatever existing tile was there
+		while (i < tiles.size() && !found)
+		{
+			if (tiles[i]->GetPosition() == oldPos)
+			{
+				WriteEntity(tiles[i]);
+				found = true;
+			}
+
+			i++;
+		}
+
+		enemy->Move(newPos, move);
 	}
 }
 
@@ -229,16 +256,16 @@ void Game::ProcessInput()
 		switch (_getch())
 		{
 		case 'w':
-			pMap->RequestMove(Character::UP);
+			pMap->RequestPlayerMove(Character::UP);
 			break;
 		case 's':
-			pMap->RequestMove(Character::DOWN);
+			pMap->RequestPlayerMove(Character::DOWN);
 			break;
 		case 'a':
-			pMap->RequestMove(Character::LEFT);
+			pMap->RequestPlayerMove(Character::LEFT);
 			break;
 		case 'd':
-			pMap->RequestMove(Character::RIGHT);
+			pMap->RequestPlayerMove(Character::RIGHT);
 			break;
 		case 'e':
 			EndGame();

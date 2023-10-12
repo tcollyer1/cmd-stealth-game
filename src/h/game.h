@@ -21,7 +21,8 @@ public:
 	GameMap(int enemies, Player* player, Treasure* treasure, Exit* exit);
 	void		SetUpMap();
 	void		DrawContent();
-	void		RequestMove(Character::Movement move);
+	void		RequestPlayerMove(Character::Movement move);
+	void		MoveEnemy(Character::Movement move, Enemy* enemy);
 
 	static const int	height = 20;
 	static const int	width = 50;
