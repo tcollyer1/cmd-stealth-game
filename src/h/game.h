@@ -39,8 +39,8 @@ private:
 	vector<Wall*>	walls;
 	vector<Enemy*>	enemies;
 
-	int				height;
-	int				width;
+	static const int	height	= 20;
+	static const int	width	= 50;
 };
 
 /// <summary>

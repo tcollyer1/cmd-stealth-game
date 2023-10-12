@@ -27,9 +27,9 @@ public:
 		UpdateSymbol();
 	}
 
-	int		GetAlertLevel();
-	bool	GetIfHasKey();
-	void	DrawEntity();
+	int				GetAlertLevel();
+	bool			GetIfHasKey();
+	virtual void	DrawEntity() override;
 
 private:
 	wstring		strSymbol;

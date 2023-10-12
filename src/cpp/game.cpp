@@ -23,9 +23,6 @@ GameMap::GameMap(int enemies, Player* player, Treasure* treasure, Exit* exit)
 
 	entities.push_back(e1);
 	entities.push_back(e2);
-
-	height	= GAME_HEIGHT;
-	width	= GAME_WIDTH;
 }
 
 /// <summary>

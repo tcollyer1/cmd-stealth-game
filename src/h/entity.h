@@ -4,11 +4,7 @@
 #define ENTITY_H
 
 #define	ALERT_LEVEL_MAX	2
-#define GAME_HEIGHT		20
-#define GAME_WIDTH		50
 #define MAX_ENEMIES		5
-
-#define GAME_SIZE (GAME_HEIGHT * GAME_WIDTH)
 
 /// <summary>
 /// Basic Entity class - represents any interactible object on the player map, including players, enemies, walls, tiles, treasure etc.
