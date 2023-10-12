@@ -32,7 +32,7 @@ public:
 	virtual void	DrawEntity() override;
 
 private:
-	wstring		strSymbol;
+	wstring		strSymbol;	// For Unicode arrow characters
 	int			alertLevel;
 	bool		hasKey;
 	Direction	dir;

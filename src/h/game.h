@@ -23,6 +23,9 @@ public:
 	void		DrawContent();
 	void		RequestMove(Character::Movement move);
 
+	static const int	height = 20;
+	static const int	width = 50;
+
 private:
 	GameMap();
 	void	WriteEntity(Entity* entity);
@@ -38,9 +41,6 @@ private:
 	vector<Tile*>	tiles;
 	vector<Wall*>	walls;
 	vector<Enemy*>	enemies;
-
-	static const int	height	= 20;
-	static const int	width	= 50;
 };
 
 /// <summary>

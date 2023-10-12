@@ -70,13 +70,12 @@ Entity::Position Character::CalculatePos(Movement move)
 	return (pos);
 }
 
-// Possibly virtual. Enemies might move differently to the player(?)
 void Character::Move(Position pos)
 {
 	position = pos;
 }
 
-void Character::Die()
+void Character::Disable()
 {
 	delete this;
 }
