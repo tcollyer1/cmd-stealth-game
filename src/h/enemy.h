@@ -21,7 +21,7 @@ public:
 		this->hasKey	= hasKey;
 		passable		= false;
 		dir				= Direction(rand() % 4); // Randomise start direction
-		symbol			= 'X'; // Default
+		symbol			= ' '; // Default
 		colour			= 13;
 
 		UpdateSymbol();

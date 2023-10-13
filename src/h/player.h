@@ -18,11 +18,13 @@ public:
 		passable		= false;
 		symbol			= 'P';
 		colour			= 11;
+		gold			= 0;
 	}
 
 private:
 	int		currDetection;
 	bool	hasKey;
+	int		gold;
 };
 
 #endif

@@ -6,7 +6,7 @@ Tile::Tile(Position position, TerrainType terrain, LightLevel lightLevel)
 	this->terrain		= terrain;
 	this->lightLevel	= lightLevel;
 	passable			= true;
-	symbol				= ' ';
+	symbol				= '.';
 	colour				= 8; // Eventually to be determined by tile type
 }
 

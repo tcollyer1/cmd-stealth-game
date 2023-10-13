@@ -1,0 +1,52 @@
+ =========================
+|   INTRODUCTION          |
+ =========================
+ 
+Welcome to CMD Stealth! In this game, your objective is to make your way across the map to the TREASURE (T) and bring it back to the EXIT (E) without getting spotted.
+
+If an ENEMY (arrow) spots you, it's game over.
+
+Collect GOLD (o) along the way and beat the mission as fast as you can to boost your score!
+
+ =========================				
+|   MAP ICONS             |				
+ =========================				
+
+P ......... You							
+T ......... Treasure					
+E ......... Exit						
+ARROWS .... Enemies						
+@ ......... Wall						
+o ......... Gold
+
+ =========================
+|   CONTROLS             |
+ =========================
+
+W/A/S/D ....... Move
+E ............. Quit
+H ............. Show help
+SPACE ......... Knock out enemy (from behind)
+F ............. Pickpocket
+
+ =========================
+|   ENEMIES               |
+ =========================
+
+In order to navigate the map, you'll need to avoid enemies. Enemies can SEE and HEAR you if you're too close.
+
+Enemies have three stages of player awareness: UNAWARE, SUSPICIOUS and SPOTTED. Entering an enemy's line of sight on BRIGHT tiles will get you spotted right away, as will moving across LOUD tiles too close to an enemy.
+
+Make sure to stay outside of an enemy's sight and hearing range where you can.
+
+Where you have to get close, make use of the environment around you. Sneak past unnoticed by moving through DARK, QUIET tiles.
+
+Moving across DARK tiles mean the enemy can't SEE you; moving across QUIET tiles mean the enemy can't HEAR you. One of both ensures complete stealth.
+
+Sneaking up from behind offers you the opportunity to PICKPOCKET or KNOCK OUT the enemy for a time.
+
+
+You will need to pickpocket the KEY to the TREASURE from one of the enemies; other enemies will carry a small amount of gold. Unlock the TREASURE and take it to the EXIT to complete the level.
+
+
+GOOD LUCK!

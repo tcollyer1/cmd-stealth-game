@@ -1,6 +1,8 @@
 ﻿#include <windows.h>
 #include <iostream>
+#include <fstream>
 #include <conio.h>
+#include <string>
 
 #include "..\h\game.h"
 #include "..\h\env.h"
@@ -14,15 +16,72 @@ GameMap::GameMap(int enemies, Player* player, Treasure* treasure, Exit* exit)
 	pTreasure	= treasure;
 	pExit		= exit;
 
-	// Will use int enemies to determine how many to generate and generate (semi-) random positions - this is all temp
-	Enemy* e1 = new Enemy(40, 5, false);
-	Enemy* e2 = new Enemy(42, 12, true);
+	int y, x;
+	Entity::Position tempPos;
+	bool positionAdded;
 
-	this->enemies.push_back(e1);
-	this->enemies.push_back(e2);
+	vector<Entity::Position> usedPositions;
 
-	entities.push_back(e1);
-	entities.push_back(e2);
+	// Add player, treasure and exit to vector of all map entities
+	entities.push_back(pPlayer);
+	entities.push_back(pTreasure);
+	entities.push_back(pExit);
+
+	// Add all positions currently in entities vector to usedPositions so they cannot be reused for enemies
+	for (int i = 0; i < entities.size(); i++)
+	{
+		usedPositions.push_back(entities[i]->GetPosition());
+	}
+
+	int startSize = usedPositions.size();
+
+	for (int i = 0; i < enemies; i++)
+	{
+		positionAdded = false;
+
+		while (!positionAdded)
+		{
+			y = (rand() % height) + 1;
+			x = (rand() % width) + 1;
+
+			tempPos.x = x;
+			tempPos.y = y;
+
+			if (usedPositions.size() == startSize)
+			{
+				Enemy* e = new Enemy(x, y, true); // Give one enemy (first enemy) a key
+				this->enemies.push_back(e);
+				entities.push_back(e);
+
+				usedPositions.push_back(tempPos);
+
+				positionAdded = true;
+			}
+			else if (find(usedPositions.begin(), usedPositions.end(), tempPos) == usedPositions.end()) // find() points to the last element if not found
+			{
+				Enemy* e = new Enemy(x, y, false);
+				this->enemies.push_back(e);
+				entities.push_back(e);
+
+				usedPositions.push_back(tempPos);
+
+				positionAdded = true;
+			}
+			else
+			{
+			}
+		}
+		
+	}
+
+	/*Enemy* e1 = new Enemy(rand() % width, rand() % height, false);
+	Enemy* e2 = new Enemy(rand() % width, rand() % height, true);*/
+
+	/*this->enemies.push_back(e1);
+	this->enemies.push_back(e2);*/
+
+	/*entities.push_back(e1);
+	entities.push_back(e2);*/
 }
 
 /// <summary>
@@ -39,6 +98,8 @@ void GameMap::WriteEntity(Entity* entity)
 	SetConsoleTextAttribute(handle, entity->GetColour());
 
 	entity->DrawEntity();
+
+	SetConsoleTextAttribute(handle, 7); // Reset colour
 }
 
 void GameMap::SetUpMap()
@@ -48,10 +109,6 @@ void GameMap::SetUpMap()
 
 	currentPos.x = 0;
 	currentPos.y = 0;
-
-	entities.push_back(pPlayer);
-	entities.push_back(pTreasure);
-	entities.push_back(pExit);
 
 	system("cls");
 	for (i = 0; i < width + 2; i++)	// +2 for left/right map boundary
@@ -111,6 +168,16 @@ void GameMap::SetUpMap()
 	wcout << '\n';
 
 
+}
+
+void GameMap::RedrawMap()
+{
+	system("cls");
+
+	for (int x = 0; x < entities.size(); x++)
+	{
+		WriteEntity(entities[x]);
+	}
 }
 
 /// <summary>
@@ -221,7 +288,7 @@ Game::Game()
 	Treasure*	t = new Treasure(10, 15);
 	Exit*		e = new Exit(20, 4);
 
-	GameMap* map = new GameMap(2, p, t, e);
+	GameMap* map = new GameMap(3, p, t, e);
 
 	pMap = map;
 
@@ -239,6 +306,7 @@ void Game::GameLoop()
 void Game::Run()
 {
 	pMap->SetUpMap();
+	DisplayText(L"H - Show Help", 1, 10);
 
 	while (running)
 	{
@@ -270,10 +338,56 @@ void Game::ProcessInput()
 		case 'e':
 			EndGame();
 			break;
+		case 'h':
+			ShowHelp();
+			break;
 		default:
 			break;
 		}
 	}
+}
+
+void Game::DisplayText(wstring text, int lineNo, int colour)
+{
+	COORD coords = { 0, GameMap::height + 2 + lineNo };
+
+	SetConsoleCursorPosition(handle, coords);
+	SetConsoleTextAttribute(handle, colour);
+
+	wcout << text;
+
+	SetConsoleTextAttribute(handle, 7); // Reset colour
+}
+
+void Game::ShowHelp()
+{
+	system("cls");
+	wifstream helpTxt("help.txt");
+	wstring txt;
+	bool close = false;
+
+	while (getline(helpTxt, txt))
+	{
+		wcout << txt << "\n";
+	}
+
+	helpTxt.close();
+
+	wcout << "\n\n> Press the ENTER key to continue...";
+
+	while (!close)
+	{
+		if (_kbhit())
+		{
+			if (_getch() == 13) // Enter
+			{
+				close = true;
+			}
+		}
+	}
+
+	pMap->RedrawMap();
+	DisplayText(L"H - Show Help", 1, 10);
 }
 
 void Game::EndGame()

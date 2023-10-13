@@ -23,9 +23,10 @@ public:
 	void		DrawContent();
 	void		RequestPlayerMove(Character::Movement move);
 	void		MoveEnemy(Character::Movement move, Enemy* enemy);
+	void		RedrawMap();
 
-	static const int	height = 20;
-	static const int	width = 50;
+	static const int	height	= 20;
+	static const int	width	= 50;
 
 private:
 	GameMap();
@@ -59,6 +60,8 @@ private:
 	void GameLoop();		// Set up map etc., call in Run()
 	void ProcessInput();	// Process user commands
 	void EndGame();
+	void DisplayText(wstring text, int lineNo, int colour);
+	void ShowHelp();
 
 	bool running;
 };
