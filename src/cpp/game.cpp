@@ -9,12 +9,14 @@
 
 static HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE); // Global for standard reuse
 
-GameMap::GameMap(int enemies, Player* player, Treasure* treasure, Exit* exit)
+GameMap::GameMap(int enemies)
 {
 	numEnemies	= enemies;
-	pPlayer		= player;
-	pTreasure	= treasure;
-	pExit		= exit;
+
+	// Temp - will generate this
+	pPlayer		= new Player(2, 19);
+	pTreasure	= new Treasure(10, 15);
+	pExit		= new Exit(20, 4);
 
 	int y, x;
 	Entity::Position tempPos;
@@ -283,12 +285,7 @@ Game::Game()
 	cursorInfo.bVisible = false;
 	SetConsoleCursorInfo(handle, &cursorInfo);
 
-	// Temp - will generate this
-	Player*		p = new Player(2, 19);
-	Treasure*	t = new Treasure(10, 15);
-	Exit*		e = new Exit(20, 4);
-
-	GameMap* map = new GameMap(3, p, t, e);
+	GameMap* map = new GameMap(3);
 
 	pMap = map;
 

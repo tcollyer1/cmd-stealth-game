@@ -18,7 +18,7 @@ using namespace std;
 class GameMap
 {
 public:
-	GameMap(int enemies, Player* player, Treasure* treasure, Exit* exit);
+	GameMap(int enemies);
 	void		SetUpMap();
 	void		DrawContent();
 	void		RequestPlayerMove(Character::Movement move);
