@@ -22,6 +22,7 @@ public:
 	void		SetUpMap();
 	void		DrawContent();
 	void		RequestPlayerMove(Character::Movement move);
+	int			RequestGoldPickup();
 	void		MoveEnemy(Character::Movement move, Enemy* enemy);
 	void		RedrawMap();
 
@@ -33,6 +34,8 @@ private:
 	void	WriteEntity(Entity* entity);
 	bool	GetIfTraversable(Entity::Position pos);
 
+	template<typename T> void AddEntities(int num, vector<T*> &entitiesVector);
+
 	int				numEnemies;	//	Number of enemies on the map
 
 	Player*			pPlayer;
@@ -43,6 +46,7 @@ private:
 	vector<Tile*>	tiles;
 	vector<Wall*>	walls;
 	vector<Enemy*>	enemies;
+	vector<Gold*>	gold;
 };
 
 /// <summary>

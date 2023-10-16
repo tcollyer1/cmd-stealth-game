@@ -19,17 +19,11 @@ public:
 			return (x == otherPos.x && y == otherPos.y);
 		}
 
-		/*Position& operator=(const Position& otherPos)
-		{
-			x = otherPos.x;
-			y = otherPos.y;
-
-			return *this;
-		}*/
-
 		int x;
 		int y;
 	};
+
+	Entity(int x, int y);
 
 	char			GetSymbol();
 	int				GetColour();
@@ -40,6 +34,8 @@ public:
 
 	virtual void	DrawEntity();
 
+	void			Destroy();
+
 protected:
 	Position		position;
 	char			symbol;
@@ -48,6 +44,9 @@ protected:
 
 	void			SetSymbol(char symbol);
 	void			SetColour(int colour);
+
+private:
+	Entity();
 };
 
 /// <summary>
@@ -58,10 +57,12 @@ class Character : public Entity
 public:
 	enum Movement { UP, DOWN, LEFT, RIGHT, NOTHING };	// Entity movement direction
 
-	Character(int x, int y);
+	Character(int x, int y) : Entity(x, y)
+	{
+		isAlive = true;
+	}
 	Position		CalculatePos(Movement move);
 	void			Move(Position pos);
-	virtual void	Disable();
 
 private:
 	Character();

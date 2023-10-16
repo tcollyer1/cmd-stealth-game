@@ -13,10 +13,11 @@ GameMap::GameMap(int enemies)
 {
 	numEnemies	= enemies;
 
-	// Temp - will generate this
+	// Temp - will generate these
 	pPlayer		= new Player(2, 19);
 	pTreasure	= new Treasure(10, 15);
 	pExit		= new Exit(20, 4);
+	Enemy* e	= new Enemy(3, 4, true); // Must have at least one enemy, which will have the key
 
 	int y, x;
 	Entity::Position tempPos;
@@ -29,15 +30,36 @@ GameMap::GameMap(int enemies)
 	entities.push_back(pTreasure);
 	entities.push_back(pExit);
 
+	this->enemies.push_back(e);
+	entities.push_back(e);
+
+	// Populate map with enemies and gold
+	AddEntities<Enemy>(numEnemies - 1, this->enemies); // -1 for the one enemy already on the map
+	AddEntities<Gold>(5, gold);
+}
+
+/// <summary>
+/// Template function that adds a certain amount of a particular type of entity to the map at random.
+/// </summary>
+/// <typeparam name="T">The Entity object type to add</typeparam>
+/// <param name="num">Number of this type of entity to add to the map</param>
+/// <param name="entitiesVector">The vector that holds all of the data for this type of entity</param>
+template<typename T>
+void GameMap::AddEntities(int num, vector<T*> &entitiesVector)
+{
+	bool				positionAdded;
+	Entity::Position	tempPos;
+	int					y, x;
+
+	vector<Entity::Position> usedPositions;
+
 	// Add all positions currently in entities vector to usedPositions so they cannot be reused for enemies
 	for (int i = 0; i < entities.size(); i++)
 	{
 		usedPositions.push_back(entities[i]->GetPosition());
 	}
 
-	int startSize = usedPositions.size();
-
-	for (int i = 0; i < enemies; i++)
+	for (int i = 0; i < num; i++)
 	{
 		positionAdded = false;
 
@@ -49,20 +71,10 @@ GameMap::GameMap(int enemies)
 			tempPos.x = x;
 			tempPos.y = y;
 
-			if (usedPositions.size() == startSize)
+			if (find(usedPositions.begin(), usedPositions.end(), tempPos) == usedPositions.end()) // find() points to the last element if not found
 			{
-				Enemy* e = new Enemy(x, y, true); // Give one enemy (first enemy) a key
-				this->enemies.push_back(e);
-				entities.push_back(e);
-
-				usedPositions.push_back(tempPos);
-
-				positionAdded = true;
-			}
-			else if (find(usedPositions.begin(), usedPositions.end(), tempPos) == usedPositions.end()) // find() points to the last element if not found
-			{
-				Enemy* e = new Enemy(x, y, false);
-				this->enemies.push_back(e);
+				T* e = new T(x, y);
+				entitiesVector.push_back(e);
 				entities.push_back(e);
 
 				usedPositions.push_back(tempPos);
@@ -71,19 +83,11 @@ GameMap::GameMap(int enemies)
 			}
 			else
 			{
+				// Continue finding a position
 			}
 		}
-		
+
 	}
-
-	/*Enemy* e1 = new Enemy(rand() % width, rand() % height, false);
-	Enemy* e2 = new Enemy(rand() % width, rand() % height, true);*/
-
-	/*this->enemies.push_back(e1);
-	this->enemies.push_back(e2);*/
-
-	/*entities.push_back(e1);
-	entities.push_back(e2);*/
 }
 
 /// <summary>
@@ -107,16 +111,11 @@ void GameMap::WriteEntity(Entity* entity)
 void GameMap::SetUpMap()
 {
 	int i, x, y;
-	Entity::Position currentPos;
-
-	currentPos.x = 0;
-	currentPos.y = 0;
 
 	system("cls");
 	for (i = 0; i < width + 2; i++)	// +2 for left/right map boundary
 	{
-		currentPos.x = i;
-		Wall* wall = new Wall(currentPos.x, currentPos.y);
+		Wall* wall = new Wall(i, 0);
 		WriteEntity(wall);
 
 		walls.push_back(wall);
@@ -129,12 +128,9 @@ void GameMap::SetUpMap()
 	{
 		for (x = 0; x < width + 2; x++)
 		{
-			currentPos.x = x;
-			currentPos.y = y;
-
 			if ((x == 0) || (x == width + 1))
 			{
-				Wall* wall = new Wall(currentPos.x, currentPos.y);
+				Wall* wall = new Wall(x, y);
 				WriteEntity(wall);
 
 				walls.push_back(wall);
@@ -143,7 +139,7 @@ void GameMap::SetUpMap()
 			}
 			else
 			{
-				Tile* tile = new Tile(currentPos, Tile::HARD, Tile::BRIGHT);
+				Tile* tile = new Tile(x, y, Tile::HARD, Tile::BRIGHT);
 				WriteEntity(tile);
 
 				tiles.push_back(tile);
@@ -154,13 +150,9 @@ void GameMap::SetUpMap()
 		wcout << '\n';
 	}
 
-	currentPos.y = height + 1;	// +1 for top map boundary
-
 	for (i = 0; i < width + 2; i++)
 	{
-		currentPos.x = i;
-
-		Wall* wall = new Wall(currentPos.x, currentPos.y);
+		Wall* wall = new Wall(i, height + 1); // +1 for top map boundary
 		WriteEntity(wall);
 
 		walls.push_back(wall);
@@ -195,6 +187,11 @@ void GameMap::DrawContent()
 	{
 		WriteEntity(enemies[i]);
 	}
+
+	for (int i = 0; i < gold.size(); i++)
+	{
+		WriteEntity(gold[i]);
+	}
 }
 
 void GameMap::RequestPlayerMove(Character::Movement move)
@@ -222,6 +219,37 @@ void GameMap::RequestPlayerMove(Character::Movement move)
 		pPlayer->Move(newPos);
 		//WriteEntity(pPlayer);
 	}
+}
+
+int GameMap::RequestGoldPickup()
+{
+	Entity::Position playerPos = pPlayer->GetPosition();
+
+	int		i		= 0;
+	bool	found	= false;
+
+	int		value	= 0;
+
+	while (i < gold.size() && !found)
+	{
+		if (gold[i]->GetPosition() == playerPos)
+		{
+			value = gold[i]->GetValue();
+			Gold* temp = gold[i];
+
+			gold.erase(gold.begin() + i);
+			temp->Destroy();
+			//gold[i]->Destroy(); // This needs to be handled much better
+
+			found = true;
+		}
+
+		i++;
+	}
+
+	pPlayer->IncrementGold(value);
+
+	return (value);
 }
 
 // Possibly merge this with RequestPlayerMove() somehow...
@@ -304,6 +332,7 @@ void Game::Run()
 {
 	pMap->SetUpMap();
 	DisplayText(L"H - Show Help", 1, 10);
+	DisplayText(L"Gold:  0  ", 2, 6);
 
 	while (running)
 	{
@@ -316,6 +345,8 @@ void Game::Run()
 
 void Game::ProcessInput()
 {
+	int gold = 0;
+
 	if (_kbhit())
 	{
 		switch (_getch())
@@ -338,20 +369,30 @@ void Game::ProcessInput()
 		case 'h':
 			ShowHelp();
 			break;
+		case 32: // Space
+			// Prioritise checking if player is behind enemy FIRST (for takedown)
+			// Otherwise just pick up gold if there's any there
+			gold = pMap->RequestGoldPickup();
+			if (gold)
+			{
+				wstring str = L"Gold:  " + gold;
+				DisplayText(str, 2, 6);
+			}
+			break;
 		default:
 			break;
 		}
 	}
 }
 
-void Game::DisplayText(wstring text, int lineNo, int colour)
+void Game::DisplayText(wstring text, int lineNo, int colour) // This function is crap
 {
 	COORD coords = { 0, GameMap::height + 2 + lineNo };
 
 	SetConsoleCursorPosition(handle, coords);
 	SetConsoleTextAttribute(handle, colour);
 
-	wcout << text;
+	wcout << text << "\n";
 
 	SetConsoleTextAttribute(handle, 7); // Reset colour
 }
@@ -359,7 +400,7 @@ void Game::DisplayText(wstring text, int lineNo, int colour)
 void Game::ShowHelp()
 {
 	system("cls");
-	wifstream helpTxt("help.txt");
+	wifstream helpTxt("help.txt"); // Wrap this in a try-catch in case file is deleted
 	wstring txt;
 	bool close = false;
 

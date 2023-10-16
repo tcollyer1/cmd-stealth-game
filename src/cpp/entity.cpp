@@ -3,6 +3,16 @@
 
 using namespace std;
 
+Entity::Entity(int x, int y)
+{
+	position.x = x;
+	position.y = y;
+
+	colour = 7;
+	passable = true;
+	symbol = ' ';
+}
+
 void Entity::SetSymbol(char symbol)
 {
 	this->symbol = symbol;
@@ -38,13 +48,6 @@ void Entity::DrawEntity()
 	wcout << symbol;
 }
 
-Character::Character(int x, int y)
-{
-	position.x	= x;
-	position.y	= y;
-	isAlive		= true;
-}
-
 Entity::Position Character::CalculatePos(Movement move)
 {
 	Position pos = GetPosition();
@@ -70,12 +73,12 @@ Entity::Position Character::CalculatePos(Movement move)
 	return (pos);
 }
 
+void Entity::Destroy()
+{
+	delete this;
+}
+
 void Character::Move(Position pos)
 {
 	position = pos;
-}
-
-void Character::Disable()
-{
-	delete this;
 }

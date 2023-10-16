@@ -21,6 +21,8 @@ public:
 		gold			= 0;
 	}
 
+	void IncrementGold(int amount);
+
 private:
 	int		currDetection;
 	bool	hasKey;
