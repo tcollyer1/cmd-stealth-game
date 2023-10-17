@@ -260,26 +260,21 @@ void GameMap::RequestGoldPickup()
 	Game::DisplayText(L"Gold:  " + to_wstring(pPlayer->GetGold()), Game::goldLineNo, 6, true);
 }
 
-bool GameMap::RequestEnemyKO()
+void GameMap::RequestEnemyKO()
 {
 	int		enemyIndex		= 0;
 	bool	ko				= PlayerIsBehindEnemy(enemyIndex);
 
 	if (ko && enemies[enemyIndex]->IsActive())
 	{
+		Game::DisplayText(L"Player knocked out an enemy!", Game::statusLineNo, 12);
 		enemies[enemyIndex]->SetActive(false);
 		// Then a timer should elapse in the game Run() scope (not here) for 10-20 seconds before enemy is set active again
 		// ...
 	}
-	else
-	{
-		ko = false;
-	}
-
-	return (ko);
 }
 
-void GameMap::RequestEnemyPickpocket()
+bool GameMap::RequestEnemyPickpocket()
 {
 	int		enemyIndex = 0;
 	bool	behind = PlayerIsBehindEnemy(enemyIndex);
@@ -296,8 +291,11 @@ void GameMap::RequestEnemyPickpocket()
 		else
 		{
 			Game::DisplayText(L"No key here...", Game::statusLineNo, 12);
+			behind = false;
 		}
 	}
+
+	return (behind);
 }
 
 // Possibly merge this with RequestPlayerMove() somehow...
@@ -378,15 +376,8 @@ bool GameMap::PlayerIsBehindEnemy(int& enemyIdx)
 	// Check enemies clockwise - if behind multiple enemies, only take down one
 	while (i < (int)enemies.size() && !found)
 	{
-		// Check if enemy to the left
-		if ((enemies[i]->GetPosition() == enemyLeft) && (enemies[i]->GetDirection() == Enemy::Direction::WEST))
-		{
-			enemyIdx = i;
-			found = true;
-		}
-
 		// Check if enemy above
-		else if ((enemies[i]->GetPosition() == enemyAbove) && (enemies[i]->GetDirection() == Enemy::Direction::NORTH))
+		if ((enemies[i]->GetPosition() == enemyAbove) && (enemies[i]->GetDirection() == Enemy::Direction::NORTH))
 		{
 			enemyIdx = i;
 			found = true;
@@ -401,6 +392,13 @@ bool GameMap::PlayerIsBehindEnemy(int& enemyIdx)
 
 		// Check if enemy below
 		else if ((enemies[i]->GetPosition() == enemyBelow) && (enemies[i]->GetDirection() == Enemy::Direction::SOUTH))
+		{
+			enemyIdx = i;
+			found = true;
+		}
+
+		// Check if enemy to the left
+		if ((enemies[i]->GetPosition() == enemyLeft) && (enemies[i]->GetDirection() == Enemy::Direction::WEST))
 		{
 			enemyIdx = i;
 			found = true;
@@ -482,19 +480,14 @@ void Game::ProcessInput()
 			break;
 		case 32: // Space
 			// Prioritise checking if player is behind enemy FIRST (for pickpocketing)
-			ko = pMap->RequestEnemyKO();
-			if (ko)
+			if (!pMap->RequestEnemyPickpocket())
 			{
-				DisplayText(L"Player knocked out an enemy!", statusLineNo, 12);
-			}
-			// Otherwise just pick up gold if there's any there
-			else
-			{
+				// Otherwise just pick up gold if there's any there
 				pMap->RequestGoldPickup();
-			}		
+			}	
 			break;
 		case 'f':
-			pMap->RequestEnemyPickpocket();
+			pMap->RequestEnemyKO();
 			break;
 		default:
 			break;

@@ -23,8 +23,8 @@ public:
 	void		DrawContent();
 	void		RequestPlayerMove(Character::Movement move);
 	void		RequestGoldPickup();
-	bool		RequestEnemyKO();
-	void		RequestEnemyPickpocket();
+	void		RequestEnemyKO();
+	bool		RequestEnemyPickpocket();
 	void		MoveEnemy(Character::Movement move, Enemy* enemy); // Rework this
 	void		RedrawMap();
 
