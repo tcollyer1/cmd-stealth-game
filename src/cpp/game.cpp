@@ -160,8 +160,6 @@ void GameMap::SetUpMap()
 		entities.push_back(wall);
 	}
 	wcout << '\n';
-
-
 }
 
 void GameMap::RedrawMap()
@@ -260,6 +258,46 @@ int GameMap::RequestGoldPickup()
 	return (value);
 }
 
+bool GameMap::RequestEnemyKO()
+{
+	int		enemyIndex		= 0;
+	bool	ko				= PlayerIsBehindEnemy(enemyIndex);
+
+	if (ko && enemies[enemyIndex]->IsActive())
+	{
+		enemies[enemyIndex]->SetActive(false);
+		// Then a timer should elapse in the game Run() scope (not here) for 10-20 seconds before enemy is set active again
+		// ...
+	}
+	else
+	{
+		ko = false;
+	}
+
+	return (ko);
+}
+
+void GameMap::RequestEnemyPickpocket()
+{
+	int		enemyIndex = 0;
+	bool	behind = PlayerIsBehindEnemy(enemyIndex);
+
+	if (behind)
+	{
+		if (enemies[enemyIndex]->GetIfHasKey())
+		{
+			pPlayer->SetKeyObtained(true);
+
+			Game::DisplayText(L"You found the key!", Game::statusLineNo, 13);
+			Game::DisplayText(L"KEY OBTAINED", Game::progressLineNo, 22, true);
+		}
+		else
+		{
+			Game::DisplayText(L"No key here...", Game::statusLineNo, 12);
+		}
+	}
+}
+
 // Possibly merge this with RequestPlayerMove() somehow...
 void GameMap::MoveEnemy(Character::Movement move, Enemy* enemy)
 {
@@ -312,6 +350,66 @@ bool GameMap::GetIfTraversable(Entity::Position pos)
 	return (traversable);
 }
 
+bool GameMap::PlayerIsBehindEnemy(int& enemyIdx)
+{
+	bool	found	= false;
+	int		i		= 0;
+
+	Entity::Position playerPos = pPlayer->GetPosition();
+	
+	// Enemy to the left: enemy should be -1 on x axis
+	Entity::Position enemyLeft = playerPos;
+	enemyLeft.x--;
+
+	// Enemy to the right: enemy should be +1 on x axis
+	Entity::Position enemyRight = playerPos;
+	enemyRight.x++;
+
+	// Enemy above: enemy should be -1 on y axis
+	Entity::Position enemyAbove = playerPos;
+	enemyAbove.y--;
+
+	// Enemy below: enemy should be +1 on y axis
+	Entity::Position enemyBelow = playerPos;
+	enemyBelow.y++;
+
+	// Check enemies clockwise - if behind multiple enemies, only take down one
+	while (i < (int)enemies.size() && !found)
+	{
+		// Check if enemy to the left
+		if ((enemies[i]->GetPosition() == enemyLeft) && (enemies[i]->GetDirection() == Enemy::Direction::WEST))
+		{
+			enemyIdx = i;
+			found = true;
+		}
+
+		// Check if enemy above
+		else if ((enemies[i]->GetPosition() == enemyAbove) && (enemies[i]->GetDirection() == Enemy::Direction::NORTH))
+		{
+			enemyIdx = i;
+			found = true;
+		}
+
+		// Check if enemy to the right
+		else if ((enemies[i]->GetPosition() == enemyRight) && (enemies[i]->GetDirection() == Enemy::Direction::EAST))
+		{
+			enemyIdx = i;
+			found = true;
+		}
+
+		// Check if enemy below
+		else if ((enemies[i]->GetPosition() == enemyBelow) && (enemies[i]->GetDirection() == Enemy::Direction::SOUTH))
+		{
+			enemyIdx = i;
+			found = true;
+		}
+
+		i++;
+	}
+
+	return (found);
+}
+
 Game::Game()
 {
 	// Make the console cursor invisible
@@ -339,8 +437,8 @@ void Game::GameLoop()
 void Game::Run()
 {
 	pMap->SetUpMap();
-	DisplayText(L"H - Show Help", 1, 10);
-	DisplayText(L"Gold:  0", 2, 6);
+	DisplayText(L"H - Show Help", hintLineNo, 10);
+	DisplayText(L"Gold:  0", goldLineNo, 6);
 
 	while (running)
 	{
@@ -355,6 +453,8 @@ void Game::ProcessInput()
 {
 	static int gold = 0;
 	wstring str;
+
+	bool ko = false;
 
 	if (_kbhit())
 	{
@@ -377,18 +477,31 @@ void Game::ProcessInput()
 			break;
 		case 'h':
 			ShowHelp();
-
-			DisplayText(L"H - Show Help", 1, 10);
-
+			DisplayText(L"H - Show Help", hintLineNo, 10, true);
 			str = L"Gold:  " + to_wstring(gold);
-			DisplayText(str, 2, 6);
+			DisplayText(str, goldLineNo, 6, true);
 			break;
 		case 32: // Space
-			// Prioritise checking if player is behind enemy FIRST (for takedown)
+			// Prioritise checking if player is behind enemy FIRST (for pickpocketing)
+			ko = pMap->RequestEnemyKO();
+			if (ko)
+			{
+				DisplayText(L"Player knocked out an enemy!", statusLineNo, 12);
+			}
 			// Otherwise just pick up gold if there's any there
-			gold += pMap->RequestGoldPickup();
-			str = L"Gold:  " + to_wstring(gold);
-			DisplayText(str, 2, 6);
+			else
+			{
+				int val = pMap->RequestGoldPickup();
+				if (val)
+				{
+					gold += val;
+					str = L"Gold:  " + to_wstring(gold);
+					DisplayText(str, goldLineNo, 6, true);
+				}
+			}		
+			break;
+		case 'f':
+			pMap->RequestEnemyPickpocket();
 			break;
 		default:
 			break;
@@ -396,14 +509,52 @@ void Game::ProcessInput()
 	}
 }
 
-void Game::DisplayText(wstring text, int lineNo, int colour) // This function is crap
+void Game::DisplayText(wstring text, int lineNo, int colour, bool noRewrite)
 {
-	COORD coords = { 0, GameMap::height + 2 + lineNo };
+	static wstring last[10]; // Or however many lines max to be used 
+	static int counter[10];  // " "
+
+	int idx			= 0;	// Index of last array to place most recent string
+	int realLineNo	= 0;	// Actual console line number
+
+	if (lineNo == 0) // Lines should start at 1, assume this if 0 is passed
+	{
+		realLineNo = GameMap::height + 2 + lineNo + 1;
+	}
+	else
+	{
+		realLineNo = GameMap::height + 2 + lineNo;
+		idx = lineNo - 1;
+	}
+
+	if (noRewrite) // User can optionally set this parameter to forcefully ignore appending a number to indicate the same message is being displayed
+	{
+		last[idx] = L"";
+	}
+
+	COORD coords = { 0, realLineNo };
 
 	SetConsoleCursorPosition(handle, coords);
 	SetConsoleTextAttribute(handle, colour);
 
-	wcout << "\r" << text << "\n";
+	// If display text is being requested but is already identical to what's there, append an extra number to indicate this to the user
+	if (text == last[idx])
+	{
+		counter[idx]++;
+
+		wcout << "\r" << text << " (" << to_wstring(counter[idx] + 1) << ")                                   \n";
+	}
+	else if (counter[idx] > 0)
+	{
+		counter[idx] = 0;
+		wcout << "\r" << text << "                                   \n";
+	}
+	else
+	{
+		wcout << "\r" << text << "                                   \n";
+	}
+
+	last[idx] = text;
 
 	SetConsoleTextAttribute(handle, 7); // Reset colour
 }
@@ -443,5 +594,5 @@ void Game::EndGame()
 	// Delete map, entities etc.
 	running = false;
 	system("cls");
-	wcout << "Thanks for playing!";
+	wcout << "Thanks for playing!\n";
 }

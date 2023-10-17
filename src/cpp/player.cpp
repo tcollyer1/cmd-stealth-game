@@ -9,3 +9,13 @@ int Player::GetGold()
 {
 	return (gold);
 }
+
+void Player::SetKeyObtained(bool obtained)
+{
+	hasKey = obtained;
+}
+
+void Player::SetActive(bool active)
+{
+	isActive = active;
+}

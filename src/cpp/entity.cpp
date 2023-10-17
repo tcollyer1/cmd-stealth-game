@@ -73,6 +73,11 @@ Entity::Position Character::CalculatePos(Movement move)
 	return (pos);
 }
 
+bool Character::IsActive()
+{
+	return (isActive);
+}
+
 void Entity::Destroy()
 {
 	delete this;

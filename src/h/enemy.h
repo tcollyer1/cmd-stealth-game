@@ -27,10 +27,14 @@ public:
 		UpdateSymbol();
 	}
 
+	Enemy();
+
 	int				GetAlertLevel();
 	bool			GetIfHasKey();
 	virtual void	DrawEntity() override;
 	void			Move(Position pos, Movement move);
+	Direction		GetDirection();
+	virtual void	SetActive(bool active) override;
 
 private:
 	wstring		strSymbol;	// For Unicode arrow characters

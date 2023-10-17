@@ -23,7 +23,9 @@ public:
 	void		DrawContent();
 	void		RequestPlayerMove(Character::Movement move);
 	int			RequestGoldPickup();
-	void		MoveEnemy(Character::Movement move, Enemy* enemy);
+	bool		RequestEnemyKO();
+	void		RequestEnemyPickpocket();
+	void		MoveEnemy(Character::Movement move, Enemy* enemy); // Rework this
 	void		RedrawMap();
 
 	static const int	height	= 20;
@@ -34,9 +36,11 @@ private:
 	void	WriteEntity(Entity* entity);
 	bool	GetIfTraversable(Entity::Position pos);
 
+	bool	PlayerIsBehindEnemy(int& enemyIdx);
+
 	template<typename T> void AddEntities(int num, vector<T*> &entitiesVector);
 
-	int				numEnemies;	//	Number of enemies on the map
+	int				numEnemies;	// Number of enemies on the map
 
 	Player*			pPlayer;
 	Treasure*		pTreasure;
@@ -58,16 +62,22 @@ public:
 	Game();
 	void Run();		// Will keep game loop going
 
+	static const int	hintLineNo		= 1;
+	static const int	goldLineNo		= 2;
+	static const int	statusLineNo	= 4;
+	static const int	progressLineNo	= 3;
+
+	static void DisplayText(wstring text, int lineNo, int colour, bool noRewrite = false);
+
 private:
 	GameMap* pMap;
 
 	void GameLoop();		// Set up map etc., call in Run()
 	void ProcessInput();	// Process user commands
 	void EndGame();
-	void DisplayText(wstring text, int lineNo, int colour);
 	void ShowHelp();
 
-	bool running;
+	bool	running;
 };
 
 #endif

@@ -26,8 +26,8 @@ o ......... Gold
 W/A/S/D ....... Move
 E ............. Quit
 H ............. Show help
-SPACE ......... Knock out enemy (from behind)/pick up gold
-F ............. Pickpocket
+SPACE ......... Pickpocket enemy/pick up gold
+F ............. Knock out enemy (from behind)
 
  =========================
 |   ENEMIES               |

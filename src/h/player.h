@@ -21,8 +21,10 @@ public:
 		gold			= 0;
 	}
 
-	void	IncrementGold(int amount);
-	int		GetGold();
+	void			IncrementGold(int amount);
+	int				GetGold();
+	void			SetKeyObtained(bool obtained);
+	virtual void	SetActive(bool active) override;
 
 private:
 	int		currDetection;

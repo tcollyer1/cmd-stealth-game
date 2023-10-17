@@ -54,6 +54,25 @@ void Enemy::UpdateSymbol()
 	}
 }
 
+Enemy::Direction Enemy::GetDirection()
+{
+	return (dir);
+}
+
+void Enemy::SetActive(bool active)
+{
+	isActive = active;
+
+	if (!active)
+	{
+		colour = 8;
+	}
+	else
+	{
+		colour = 13;
+	}
+}
+
 void Enemy::Move(Position pos, Movement move)
 {
 	position = pos;

@@ -59,14 +59,18 @@ public:
 
 	Character(int x, int y) : Entity(x, y)
 	{
-		isAlive = true;
+		isActive = true;
 	}
 	Position		CalculatePos(Movement move);
 	void			Move(Position pos);
+	bool			IsActive();
+	virtual void	SetActive(bool active) = 0;
+
+protected:
+	bool	isActive;
 
 private:
 	Character();
-	bool		isAlive;
 };
 
 #endif
