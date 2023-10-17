@@ -235,11 +235,19 @@ int GameMap::RequestGoldPickup()
 		if (gold[i]->GetPosition() == playerPos)
 		{
 			value = gold[i]->GetValue();
-			Gold* temp = gold[i];
 
-			gold.erase(gold.begin() + i);
-			temp->Destroy();
-			//gold[i]->Destroy(); // This needs to be handled much better
+			Gold* goldCopy = gold[i]; // Copy pointer to this Gold entity
+
+			gold.erase(gold.begin() + i); // Remove this gold piece from the vector
+			
+			vector<Entity*>::iterator goldEntity = find(entities.begin(), entities.end(), (Entity*)goldCopy); // Find same Gold entity in vector of all entities
+
+			if (goldEntity != entities.end())
+			{
+				entities.erase(goldEntity); // Remove this gold piece from the vector
+			}
+
+			goldCopy->Destroy(); // Deallocate memory for this gold piece
 
 			found = true;
 		}
