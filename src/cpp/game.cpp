@@ -474,9 +474,6 @@ void Game::ProcessInput()
 			break;
 		case 'h':
 			ShowHelp();
-			/*DisplayText(L"H - Show Help", hintLineNo, 10, true);
-			str = L"Gold:  " + to_wstring(gold);
-			DisplayText(str, goldLineNo, 6, true);*/
 			break;
 		case 32: // Space
 			// Prioritise checking if player is behind enemy FIRST (for pickpocketing)
