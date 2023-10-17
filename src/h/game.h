@@ -22,7 +22,7 @@ public:
 	void		SetUpMap();
 	void		DrawContent();
 	void		RequestPlayerMove(Character::Movement move);
-	int			RequestGoldPickup();
+	void		RequestGoldPickup();
 	bool		RequestEnemyKO();
 	void		RequestEnemyPickpocket();
 	void		MoveEnemy(Character::Movement move, Enemy* enemy); // Rework this

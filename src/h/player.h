@@ -24,6 +24,7 @@ public:
 	void			IncrementGold(int amount);
 	int				GetGold();
 	void			SetKeyObtained(bool obtained);
+	bool			GetKeyObtained();
 	virtual void	SetActive(bool active) override;
 
 private:

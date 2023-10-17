@@ -15,6 +15,11 @@ void Player::SetKeyObtained(bool obtained)
 	hasKey = obtained;
 }
 
+bool Player::GetKeyObtained()
+{
+	return (hasKey);
+}
+
 void Player::SetActive(bool active)
 {
 	isActive = active;

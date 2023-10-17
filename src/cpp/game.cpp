@@ -19,12 +19,6 @@ GameMap::GameMap(int enemies)
 	pExit		= new Exit(20, 4);
 	Enemy* e	= new Enemy(3, 4, true); // Must have at least one enemy, which will have the key
 
-	int y, x;
-	Entity::Position tempPos;
-	bool positionAdded;
-
-	vector<Entity::Position> usedPositions;
-
 	// Add player, treasure and exit to vector of all map entities
 	entities.push_back(pPlayer);
 	entities.push_back(pTreasure);
@@ -170,6 +164,14 @@ void GameMap::RedrawMap()
 	{
 		WriteEntity(entities[x]);
 	}
+
+	Game::DisplayText(L"H - Show Help", Game::hintLineNo, 10, true);
+	Game::DisplayText(L"Gold:  " + to_wstring(pPlayer->GetGold()), Game::goldLineNo, 6, true);
+
+	if (pPlayer->GetKeyObtained())
+	{
+		Game::DisplayText(L"KEY OBTAINED", Game::progressLineNo, 22, true);
+	}	
 }
 
 /// <summary>
@@ -219,7 +221,7 @@ void GameMap::RequestPlayerMove(Character::Movement move)
 	}
 }
 
-int GameMap::RequestGoldPickup()
+void GameMap::RequestGoldPickup()
 {
 	Entity::Position playerPos = pPlayer->GetPosition();
 
@@ -255,7 +257,7 @@ int GameMap::RequestGoldPickup()
 
 	pPlayer->IncrementGold(value);
 
-	return (value);
+	Game::DisplayText(L"Gold:  " + to_wstring(pPlayer->GetGold()), Game::goldLineNo, 6, true);
 }
 
 bool GameMap::RequestEnemyKO()
@@ -451,9 +453,6 @@ void Game::Run()
 
 void Game::ProcessInput()
 {
-	static int gold = 0;
-	wstring str;
-
 	bool ko = false;
 
 	if (_kbhit())
@@ -477,9 +476,9 @@ void Game::ProcessInput()
 			break;
 		case 'h':
 			ShowHelp();
-			DisplayText(L"H - Show Help", hintLineNo, 10, true);
+			/*DisplayText(L"H - Show Help", hintLineNo, 10, true);
 			str = L"Gold:  " + to_wstring(gold);
-			DisplayText(str, goldLineNo, 6, true);
+			DisplayText(str, goldLineNo, 6, true);*/
 			break;
 		case 32: // Space
 			// Prioritise checking if player is behind enemy FIRST (for pickpocketing)
@@ -491,13 +490,7 @@ void Game::ProcessInput()
 			// Otherwise just pick up gold if there's any there
 			else
 			{
-				int val = pMap->RequestGoldPickup();
-				if (val)
-				{
-					gold += val;
-					str = L"Gold:  " + to_wstring(gold);
-					DisplayText(str, goldLineNo, 6, true);
-				}
+				pMap->RequestGoldPickup();
 			}		
 			break;
 		case 'f':
