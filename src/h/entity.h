@@ -4,11 +4,7 @@
 #define ENTITY_H
 
 #define	ALERT_LEVEL_MAX	2
-#define GAME_HEIGHT		20
-#define GAME_WIDTH		50
 #define MAX_ENEMIES		5
-
-#define GAME_SIZE (GAME_HEIGHT * GAME_WIDTH)
 
 /// <summary>
 /// Basic Entity class - represents any interactible object on the player map, including players, enemies, walls, tiles, treasure etc.
@@ -23,17 +19,11 @@ public:
 			return (x == otherPos.x && y == otherPos.y);
 		}
 
-		/*Position& operator=(const Position& otherPos)
-		{
-			x = otherPos.x;
-			y = otherPos.y;
-
-			return *this;
-		}*/
-
 		int x;
 		int y;
 	};
+
+	Entity(int x, int y);
 
 	char			GetSymbol();
 	int				GetColour();
@@ -44,6 +34,8 @@ public:
 
 	virtual void	DrawEntity();
 
+	void			Destroy();
+
 protected:
 	Position		position;
 	char			symbol;
@@ -52,6 +44,9 @@ protected:
 
 	void			SetSymbol(char symbol);
 	void			SetColour(int colour);
+
+private:
+	Entity();
 };
 
 /// <summary>
@@ -62,14 +57,20 @@ class Character : public Entity
 public:
 	enum Movement { UP, DOWN, LEFT, RIGHT, NOTHING };	// Entity movement direction
 
-	Character(int x, int y);
-	Position	CalculatePos(Movement move);
-	void		Move(Position pos);
-	void		Die();
+	Character(int x, int y) : Entity(x, y)
+	{
+		isActive = true;
+	}
+	Position		CalculatePos(Movement move);
+	void			Move(Position pos);
+	bool			IsActive();
+	virtual void	SetActive(bool active) = 0;
+
+protected:
+	bool	isActive;
 
 private:
 	Character();
-	bool		isAlive;
 };
 
 #endif

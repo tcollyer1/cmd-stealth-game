@@ -18,11 +18,19 @@ public:
 		passable		= false;
 		symbol			= 'P';
 		colour			= 11;
+		gold			= 0;
 	}
+
+	void			IncrementGold(int amount);
+	int				GetGold();
+	void			SetKeyObtained(bool obtained);
+	bool			GetKeyObtained();
+	virtual void	SetActive(bool active) override;
 
 private:
 	int		currDetection;
 	bool	hasKey;
+	int		gold;
 };
 
 #endif

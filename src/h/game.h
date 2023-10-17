@@ -18,17 +18,29 @@ using namespace std;
 class GameMap
 {
 public:
-	GameMap(int enemies, Player* player, Treasure* treasure, Exit* exit);
+	GameMap(int enemies);
 	void		SetUpMap();
 	void		DrawContent();
-	void		RequestMove(Character::Movement move);
+	void		RequestPlayerMove(Character::Movement move);
+	void		RequestGoldPickup();
+	void		RequestEnemyKO();
+	bool		RequestEnemyPickpocket();
+	void		MoveEnemy(Character::Movement move, Enemy* enemy); // Rework this
+	void		RedrawMap();
+
+	static const int	height	= 20;
+	static const int	width	= 50;
 
 private:
 	GameMap();
 	void	WriteEntity(Entity* entity);
 	bool	GetIfTraversable(Entity::Position pos);
 
-	int				numEnemies;	//	Number of enemies on the map
+	bool	PlayerIsBehindEnemy(int& enemyIdx);
+
+	template<typename T> void AddEntities(int num, vector<T*> &entitiesVector);
+
+	int				numEnemies;	// Number of enemies on the map
 
 	Player*			pPlayer;
 	Treasure*		pTreasure;
@@ -38,9 +50,7 @@ private:
 	vector<Tile*>	tiles;
 	vector<Wall*>	walls;
 	vector<Enemy*>	enemies;
-
-	int				height;
-	int				width;
+	vector<Gold*>	gold;
 };
 
 /// <summary>
@@ -52,14 +62,22 @@ public:
 	Game();
 	void Run();		// Will keep game loop going
 
+	static const int	hintLineNo		= 1;
+	static const int	goldLineNo		= 2;
+	static const int	statusLineNo	= 4;
+	static const int	progressLineNo	= 3;
+
+	static void DisplayText(wstring text, int lineNo, int colour, bool noRewrite = false);
+
 private:
 	GameMap* pMap;
 
 	void GameLoop();		// Set up map etc., call in Run()
 	void ProcessInput();	// Process user commands
 	void EndGame();
+	void ShowHelp();
 
-	bool running;
+	bool	running;
 };
 
 #endif
