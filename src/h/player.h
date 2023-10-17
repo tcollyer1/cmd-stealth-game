@@ -21,7 +21,8 @@ public:
 		gold			= 0;
 	}
 
-	void IncrementGold(int amount);
+	void	IncrementGold(int amount);
+	int		GetGold();
 
 private:
 	int		currDetection;

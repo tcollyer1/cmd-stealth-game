@@ -242,7 +242,7 @@ int GameMap::RequestGoldPickup()
 			
 			vector<Entity*>::iterator goldEntity = find(entities.begin(), entities.end(), (Entity*)goldCopy); // Find same Gold entity in vector of all entities
 
-			if (goldEntity != entities.end())
+			if (goldEntity != entities.end()) // If found in vector - should ALWAYS find it?
 			{
 				entities.erase(goldEntity); // Remove this gold piece from the vector
 			}
@@ -340,7 +340,7 @@ void Game::Run()
 {
 	pMap->SetUpMap();
 	DisplayText(L"H - Show Help", 1, 10);
-	DisplayText(L"Gold:  0  ", 2, 6);
+	DisplayText(L"Gold:  0", 2, 6);
 
 	while (running)
 	{
@@ -353,7 +353,8 @@ void Game::Run()
 
 void Game::ProcessInput()
 {
-	int gold = 0;
+	static int gold = 0;
+	wstring str;
 
 	if (_kbhit())
 	{
@@ -376,16 +377,18 @@ void Game::ProcessInput()
 			break;
 		case 'h':
 			ShowHelp();
+
+			DisplayText(L"H - Show Help", 1, 10);
+
+			str = L"Gold:  " + to_wstring(gold);
+			DisplayText(str, 2, 6);
 			break;
 		case 32: // Space
 			// Prioritise checking if player is behind enemy FIRST (for takedown)
 			// Otherwise just pick up gold if there's any there
-			gold = pMap->RequestGoldPickup();
-			if (gold)
-			{
-				wstring str = L"Gold:  " + gold;
-				DisplayText(str, 2, 6);
-			}
+			gold += pMap->RequestGoldPickup();
+			str = L"Gold:  " + to_wstring(gold);
+			DisplayText(str, 2, 6);
 			break;
 		default:
 			break;
@@ -400,7 +403,7 @@ void Game::DisplayText(wstring text, int lineNo, int colour) // This function is
 	SetConsoleCursorPosition(handle, coords);
 	SetConsoleTextAttribute(handle, colour);
 
-	wcout << text << "\n";
+	wcout << "\r" << text << "\n";
 
 	SetConsoleTextAttribute(handle, 7); // Reset colour
 }
@@ -433,7 +436,6 @@ void Game::ShowHelp()
 	}
 
 	pMap->RedrawMap();
-	DisplayText(L"H - Show Help", 1, 10);
 }
 
 void Game::EndGame()
