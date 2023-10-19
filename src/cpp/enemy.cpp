@@ -43,13 +43,13 @@ void Enemy::UpdateSymbol()
 	switch (alertLevel)
 	{
 	case 0:
-		colour = 10;
+		colour.foreground = 10;
 		break;
 	case 1:
-		colour = 14;
+		colour.foreground = 14;
 		break;
 	case 2:
-		colour = 12;
+		colour.foreground = 12;
 		break;
 	}
 }
@@ -65,11 +65,11 @@ void Enemy::SetActive(bool active)
 
 	if (!active)
 	{
-		colour = 8;
+		colour.foreground = 9;
 	}
 	else
 	{
-		colour = 13;
+		colour.foreground = 13;
 	}
 }
 

@@ -13,12 +13,12 @@ class Player : public Character
 public:
 	Player(int x, int y) : Character(x, y)
 	{
-		currDetection	= 0;
-		hasKey			= false;
-		passable		= false;
-		symbol			= 'P';
-		colour			= 11;
-		gold			= 0;
+		currDetection		= 0;
+		hasKey				= false;
+		passable			= false;
+		symbol				= 'P';
+		colour.foreground	= 11;
+		gold				= 0;
 	}
 
 	void			IncrementGold(int amount);

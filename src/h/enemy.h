@@ -17,12 +17,12 @@ public:
 
 	Enemy(int x, int y, bool hasKey = false) : Character(x, y)
 	{
-		alertLevel		= 0;
-		this->hasKey	= hasKey;
-		passable		= false;
-		dir				= Direction(rand() % 4); // Randomise start direction
-		symbol			= ' '; // Default
-		colour			= 13;
+		alertLevel			= 0;
+		this->hasKey		= hasKey;
+		passable			= false;
+		dir					= Direction(rand() % 4); // Randomise start direction
+		symbol				= ' '; // Default
+		colour.foreground	= 13;
 
 		UpdateSymbol();
 	}

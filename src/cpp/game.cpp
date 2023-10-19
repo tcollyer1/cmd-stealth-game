@@ -88,14 +88,24 @@ void GameMap::AddEntities(int num, vector<T*> &entitiesVector)
 /// Writes entities to the map.
 /// </summary>
 /// <param name="entity">Pointer to the entity to write</param>
-void GameMap::WriteEntity(Entity* entity)
+void GameMap::WriteEntity(Entity* entity, int background)
 {	
 	cout.flush();
 
 	COORD coords = { (SHORT)entity->GetPosition().x, (SHORT)entity->GetPosition().y };
 
+	int fg = entity->GetColour().foreground;
+	int bg = entity->GetColour().background;
+
+	if (background != 0)
+	{
+		bg = background; // Overwrite background with new
+	}
+
+	int colour = Game::GetColourCode(fg, bg);
+
 	SetConsoleCursorPosition(handle, coords);
-	SetConsoleTextAttribute(handle, entity->GetColour());
+	SetConsoleTextAttribute(handle, colour);
 
 	entity->DrawEntity();
 
@@ -105,6 +115,9 @@ void GameMap::WriteEntity(Entity* entity)
 void GameMap::SetUpMap()
 {
 	int i, x, y;
+
+	Tile::LightLevel	light;
+	Tile::TerrainType	terrain;
 
 	system("cls");
 	for (i = 0; i < width + 2; i++)	// +2 for left/right map boundary
@@ -133,7 +146,10 @@ void GameMap::SetUpMap()
 			}
 			else
 			{
-				Tile* tile = new Tile(x, y, Tile::HARD, Tile::BRIGHT);
+				light	= Tile::LightLevel(rand() % 3);
+				terrain = Tile::TerrainType(rand() % 2);
+
+				Tile* tile = new Tile(x, y, terrain, light); // To be generated SEMI-randomly
 				WriteEntity(tile);
 
 				tiles.push_back(tile);
@@ -179,18 +195,29 @@ void GameMap::RedrawMap()
 /// </summary>
 void GameMap::DrawContent()
 {
-	WriteEntity(pPlayer);
-	WriteEntity(pTreasure);
-	WriteEntity(pExit);
+	int bg, playerBg, treasureBg, exitBg = 0; // TODO: improve this function
+
+	playerBg	= GetTileBackground(pPlayer->GetPosition());
+	treasureBg	= GetTileBackground(pTreasure->GetPosition());
+	exitBg		= GetTileBackground(pExit->GetPosition());
+
+	WriteEntity(pPlayer, playerBg);
+	WriteEntity(pTreasure, treasureBg);
+	WriteEntity(pExit, exitBg);
 
 	for (int i = 0; i < enemies.size(); i++)
 	{
-		WriteEntity(enemies[i]);
+		// TODO: Needs to check if tile has a background colour to set the same background colour here
+		//exists(enemies[i]->GetPosition());
+		bg = GetTileBackground(enemies[i]->GetPosition());
+		WriteEntity(enemies[i], bg);
 	}
 
 	for (int i = 0; i < gold.size(); i++)
 	{
-		WriteEntity(gold[i]);
+		// Same as above
+		bg = GetTileBackground(gold[i]->GetPosition());
+		WriteEntity(gold[i], bg);
 	}
 }
 
@@ -350,6 +377,26 @@ bool GameMap::GetIfTraversable(Entity::Position pos)
 	return (traversable);
 }
 
+int GameMap::GetTileBackground(Entity::Position pos)
+{
+	int		bg		= 0;
+	bool	found	= false;
+	int		i		= 0;
+
+	while (i < (int)tiles.size() && !found)
+	{
+		if (tiles[i]->GetPosition() == pos)
+		{
+			bg = tiles[i]->GetColour().background;
+			found = true;
+		}
+
+		i++;
+	}
+
+	return (bg);
+}
+
 bool GameMap::PlayerIsBehindEnemy(int& enemyIdx)
 {
 	bool	found	= false;
@@ -424,6 +471,13 @@ Game::Game()
 	pMap = map;
 
 	running = true;
+}
+
+int Game::GetColourCode(int foreground, int background)
+{
+	int colour = 16 * background + foreground;
+
+	return (colour);
 }
 
 void Game::GameLoop()

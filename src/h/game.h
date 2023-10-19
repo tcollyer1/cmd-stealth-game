@@ -33,14 +33,21 @@ public:
 
 private:
 	GameMap();
-	void	WriteEntity(Entity* entity);
+	void	WriteEntity(Entity* entity, int background = 0);
 	bool	GetIfTraversable(Entity::Position pos);
+	int		GetTileBackground(Entity::Position pos);
 
 	bool	PlayerIsBehindEnemy(int& enemyIdx);
 
 	template<typename T> void AddEntities(int num, vector<T*> &entitiesVector);
 
 	int				numEnemies;	// Number of enemies on the map
+
+	// Use this to search in entities if position exists?
+	/*auto exists = [&](Entity::Position& pos)
+	{
+		return find_if(begin(entities), end(entities), [&](Entity& e) { return e.GetPosition() == pos;  }) != end(entities);
+	};*/
 
 	Player*			pPlayer;
 	Treasure*		pTreasure;
@@ -68,6 +75,8 @@ public:
 	static const int	progressLineNo	= 3;
 
 	static void DisplayText(wstring text, int lineNo, int colour, bool noRewrite = false);
+
+	static int	GetColourCode(int foreground, int background);
 
 private:
 	GameMap* pMap;
