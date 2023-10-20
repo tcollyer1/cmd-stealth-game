@@ -20,20 +20,18 @@ void Tile::DetermineSymbol(TerrainType terrain, LightLevel light)
 		break;
 	}
 
-	colour.foreground = 8;
-
 	switch (light)
 	{
 	case BRIGHT:
-		colour.foreground = BLACK; //WAS BLACK
+		colour.foreground = BLACK;
 		colour.background = GREY;
 		break;
 	case MEDIUM:
 		colour.foreground = GREY;
-		colour.background = BLACK; //WAS GREY
+		colour.background = BLACK;
 		break;
 	case DARK:
-		colour.foreground = BLACK; //WAS GREY
+		colour.foreground = BLACK;
 		colour.background = BLACK;
 		break;
 	}

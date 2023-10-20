@@ -43,13 +43,13 @@ void Enemy::UpdateSymbol()
 	switch (alertLevel)
 	{
 	case 0:
-		colour.foreground = 10;
+		colour.foreground = GREEN;
 		break;
 	case 1:
-		colour.foreground = 14;
+		colour.foreground = YELLOW;
 		break;
 	case 2:
-		colour.foreground = 12;
+		colour.foreground = RED;
 		break;
 	}
 }
@@ -65,11 +65,12 @@ void Enemy::SetActive(bool active)
 
 	if (!active)
 	{
-		colour.foreground = 9;
+		colour.foreground = BLUE;
 	}
 	else
 	{
-		colour.foreground = 13;
+		colour.foreground = YELLOW;
+		//alertLevel = 1;	// Enemy should be in an alerted state when recovering from takedown
 	}
 }
 
