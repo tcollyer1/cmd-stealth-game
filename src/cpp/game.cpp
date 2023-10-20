@@ -665,7 +665,7 @@ void Game::DisplayText(wstring text, int lineNo, int colour, bool noRewrite)
 /// <returns>Whether new game has been selected or not</returns>
 bool Game::StartMenu()
 {
-	wifstream	startupTxt("startup.txt"); // Wrap this in a try-catch in case file is deleted
+	wifstream	startupTxt("./media/startup.txt"); // Wrap this in a try-catch in case file is deleted
 	wstring		currLine;
 	wstring		txt;
 
@@ -725,7 +725,7 @@ bool Game::StartMenu()
 void Game::ShowHelp()
 {
 	system("cls");
-	wifstream	helpTxt("help.txt"); // Wrap this in a try-catch in case file is deleted
+	wifstream	helpTxt("./media/help.txt"); // Wrap this in a try-catch in case file is deleted
 	wstring		txt;
 	bool		close = false;
 

@@ -16,7 +16,8 @@ P ......... You
 T ......... Treasure					
 E ......... Exit						
 ARROWS .... Enemies						
-@ ......... Wall						
+. ......... Soft tile
+* ......... Hard tile
 o ......... Gold
 
  =========================
@@ -28,6 +29,16 @@ E ............. Quit
 H ............. Show help
 SPACE ......... Pickpocket enemy/pick up gold
 F ............. Knock out enemy (from behind)
+
+ =========================
+|   TILES                 |
+ =========================
+ 
+The walkable tiles on the map have a BRIGHTNESS and TERRAIN TYPE property. Each tile will either be BRIGHT, MEDIUM or DARK, and will also be either HARD or SOFT.
+
+BRIGHT tiles mean the enemy will be able to see you should you be in their line of sight; MEDIUM means it will take much longer for an enemy to spot you, and DARK renders you completely invisible.
+
+HARD tiles will emit noise when walked on, alerting the enemies audibly. SOFT tiles are impossible to hear when walked on by enemies.
 
  =========================
 |   ENEMIES               |
