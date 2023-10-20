@@ -95,6 +95,11 @@ public:
 		DetermineSymbol(terrain, lightLevel);		
 	}
 
+	
+
+	TerrainType GetTerrainType();
+	LightLevel	GetLightLevel();
+
 private:
 	TerrainType	terrain;
 	LightLevel	lightLevel;

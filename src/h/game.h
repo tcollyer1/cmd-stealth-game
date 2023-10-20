@@ -25,7 +25,7 @@ public:
 	void		RequestGoldPickup();
 	void		RequestEnemyKO();
 	bool		RequestEnemyPickpocket();
-	void		MoveEnemy(Character::Movement move, Enemy* enemy); // Rework this
+	void		MoveEnemy(Character::Movement move, Enemy* enemy); // TODO: Rework this
 	void		RedrawMap();
 
 	static const int	height	= 20;
@@ -38,6 +38,8 @@ private:
 	int		GetTileBackground(Entity::Position pos);
 
 	bool	PlayerIsBehindEnemy(int& enemyIdx);
+
+	void	PlaySoundFX(Tile::TerrainType t);
 
 	template<typename T> void AddEntities(int num, vector<T*> &entitiesVector);
 

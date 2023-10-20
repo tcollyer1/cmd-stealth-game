@@ -7,6 +7,8 @@
 #include "..\h\game.h"
 #include "..\h\env.h"
 
+#pragma comment(lib, "Winmm.lib") // For sound effects
+
 static HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE); // Global for standard reuse
 
 GameMap::GameMap(int enemies)
@@ -112,6 +114,29 @@ void GameMap::WriteEntity(Entity* entity, int background)
 	SetConsoleTextAttribute(handle, Entity::DARK_WHITE); // Reset colour
 }
 
+void GameMap::PlaySoundFX(Tile::TerrainType t)
+{
+	int		soundNo		= rand() % 3 + 1;
+	wstring	fileName	= L"";
+
+	switch (t)
+	{
+	case (Tile::HARD):
+		fileName = L"./media/hardtile_" + to_wstring(soundNo) + L".wav";
+		break;
+	case (Tile::SOFT):
+		fileName = L"./media/softtile_" + to_wstring(soundNo) + L".wav";
+		break;
+	default:
+		break;
+	}
+
+	if (L"" != fileName && t == Tile::HARD) // TODO: REMOVE everything after && case later
+	{
+		PlaySound(fileName.c_str(), NULL, SND_FILENAME | SND_ASYNC);
+	}
+}
+
 void GameMap::SetUpMap()
 {
 	int i, x, y;
@@ -146,7 +171,7 @@ void GameMap::SetUpMap()
 			}
 			else
 			{
-				if ((x != pPlayer->GetPosition().x) && (y != pPlayer->GetPosition().y))
+				if (!((x == pPlayer->GetPosition().x) && (y == pPlayer->GetPosition().y)))
 				{
 					light = Tile::LightLevel(rand() % 3);
 					terrain = Tile::TerrainType(rand() % 2);
@@ -210,24 +235,21 @@ void GameMap::DrawContent()
 	treasureBg	= GetTileBackground(pTreasure->GetPosition());
 	exitBg		= GetTileBackground(pExit->GetPosition());
 
-	WriteEntity(pPlayer, playerBg);
-	WriteEntity(pTreasure, treasureBg);
-	WriteEntity(pExit, exitBg);
-
 	for (int i = 0; i < enemies.size(); i++)
 	{
-		// TODO: Needs to check if tile has a background colour to set the same background colour here
-		//exists(enemies[i]->GetPosition());
 		bg = GetTileBackground(enemies[i]->GetPosition());
 		WriteEntity(enemies[i], bg);
 	}
 
 	for (int i = 0; i < gold.size(); i++)
 	{
-		// Same as above
 		bg = GetTileBackground(gold[i]->GetPosition());
 		WriteEntity(gold[i], bg);
 	}
+
+	WriteEntity(pTreasure, treasureBg);
+	WriteEntity(pExit, exitBg);
+	WriteEntity(pPlayer, playerBg);
 }
 
 void GameMap::RequestPlayerMove(Character::Movement move)
@@ -235,8 +257,8 @@ void GameMap::RequestPlayerMove(Character::Movement move)
 	Entity::Position oldPos = pPlayer->GetPosition();
 	Entity::Position newPos = pPlayer->CalculatePos(move);
 
-	int		i		= 0;
-	bool	found	= false;
+	int		i			= 0;
+	bool	found		= false;
 
 	if (GetIfTraversable(newPos))
 	{
@@ -253,7 +275,8 @@ void GameMap::RequestPlayerMove(Character::Movement move)
 		}
 
 		pPlayer->Move(newPos);
-		//WriteEntity(pPlayer);
+		Tile* t = pPlayer->GetCurrentTile();
+		PlaySoundFX(t->GetTerrainType());
 	}
 }
 
@@ -377,6 +400,14 @@ bool GameMap::GetIfTraversable(Entity::Position pos)
 		if (entities[i]->GetPosition() == pos)
 		{
 			traversable = entities[i]->GetIfPassable();
+
+			if (traversable)
+			{
+				// Update player tile to this new one
+				// TODO: WILL NEED TO REWORK THIS WHEN ENEMIES MOVE
+				pPlayer->UpdateCurrentTile((Tile*)entities[i]);
+			}
+
 			found = true;
 		}
 
@@ -406,6 +437,11 @@ int GameMap::GetTileBackground(Entity::Position pos)
 	return (bg);
 }
 
+/// <summary>
+/// Gets if the player is currently behind an enemy.
+/// </summary>
+/// <param name="enemyIdx">Index of the Enemy object in the enemies vector that the player is currently behind, if any</param>
+/// <returns>Whether the player is behind an enemy or not</returns>
 bool GameMap::PlayerIsBehindEnemy(int& enemyIdx)
 {
 	bool	found	= false;
@@ -482,6 +518,12 @@ Game::Game()
 	running = true;
 }
 
+/// <summary>
+/// Calculates the Windows console colour code based on the requested foreground and background colour.
+/// </summary>
+/// <param name="foreground">Foreground colour (see Colours enum within the Entity class)</param>
+/// <param name="background">Background colour</param>
+/// <returns>The calculated colour code for the requested foreground/background colour combination</returns>
 int Game::GetColourCode(int foreground, int background)
 {
 	int colour = 16 * background + foreground;
@@ -501,7 +543,7 @@ void Game::Run()
 {
 	bool newGame = StartMenu();	
 
-	if (running)
+	if (running) // If "Quit" not selected at the start menu
 	{
 		if (newGame)
 		{
@@ -521,9 +563,8 @@ void Game::Run()
 	{
 		GameLoop();
 		ProcessGameInput();
-		Sleep(50);
-	}
-	
+		Sleep(10); // 10ms delay between map redraws
+	}	
 }
 
 /// <summary>
@@ -698,7 +739,7 @@ bool Game::StartMenu()
 
 			COORD coords = cbsi.dwCursorPosition;
 
-			wcout << "\n\nEnter a menu option.\t> ";
+			wcout << "\n\nEnter a menu option.\n> ";
 
 			ProcessStartupInput(selected, isNewGame, quit);
 		}

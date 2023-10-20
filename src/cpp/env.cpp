@@ -38,3 +38,13 @@ void Tile::DetermineSymbol(TerrainType terrain, LightLevel light)
 		break;
 	}
 }
+
+Tile::LightLevel Tile::GetLightLevel()
+{
+	return (lightLevel);
+}
+
+Tile::TerrainType Tile::GetTerrainType()
+{
+	return (terrain);
+}

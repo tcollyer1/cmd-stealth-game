@@ -4,6 +4,7 @@
 #define PLAYER_H
 
 #include "entity.h"
+#include "env.h"
 
 /// <summary>
 /// The player character. Inherits from Character class.
@@ -19,6 +20,7 @@ public:
 		symbol				= 'P';
 		colour.foreground	= WHITE;
 		gold				= 0;
+		currTile			= NULL;
 	}
 
 	void			IncrementGold(int amount);
@@ -26,11 +28,14 @@ public:
 	void			SetKeyObtained(bool obtained);
 	bool			GetKeyObtained();
 	virtual void	SetActive(bool active) override;
+	void			UpdateCurrentTile(Tile* t);
+	Tile*			GetCurrentTile();
 
 private:
 	int		currDetection;
 	bool	hasKey;
 	int		gold;
+	Tile*	currTile;
 };
 
 #endif
