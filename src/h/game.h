@@ -81,8 +81,10 @@ public:
 private:
 	GameMap* pMap;
 
-	void GameLoop();		// Set up map etc., call in Run()
-	void ProcessInput();	// Process user commands
+	bool StartMenu();														// Initial screen on startup
+	void GameLoop();														// Set up map etc., call in Run()
+	void ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit);	// Process start screen user input
+	void ProcessGameInput();												// Process user commands
 	void EndGame();
 	void ShowHelp();
 

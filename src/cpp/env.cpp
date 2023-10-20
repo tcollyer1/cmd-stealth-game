@@ -13,10 +13,10 @@ void Tile::DetermineSymbol(TerrainType terrain, LightLevel light)
 	switch (terrain)
 	{
 	case HARD:
-		symbol = '.';
+		symbol = '*';
 		break;
 	case SOFT:
-		symbol = ' ';
+		symbol = '.';
 		break;
 	}
 
@@ -25,24 +25,16 @@ void Tile::DetermineSymbol(TerrainType terrain, LightLevel light)
 	switch (light)
 	{
 	case BRIGHT:
-		//colour = 112;
-		//colour = BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED | BACKGROUND_INTENSITY;
-		//colour = 15; // WHITE
-		colour.foreground = 0;
-		colour.background = 7;
+		colour.foreground = BLACK; //WAS BLACK
+		colour.background = GREY;
 		break;
 	case MEDIUM:
-		//colour = 128;
-		//colour = BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED;
-		//colour = 8; // GREY
-		colour.foreground = 0;
-		colour.background = 8;
+		colour.foreground = GREY;
+		colour.background = BLACK; //WAS GREY
 		break;
 	case DARK:
-		//colour = 8;
-		//colour = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
-		colour.foreground = 8;
-		colour.background = 0;
+		colour.foreground = BLACK; //WAS GREY
+		colour.background = BLACK;
 		break;
 	}
 }

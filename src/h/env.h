@@ -14,7 +14,7 @@ public:
 		passable			= true;
 
 		symbol				= 'o';
-		colour.foreground	= 14;
+		colour.foreground	= YELLOW;
 		value				= rand() % 10 + 1;	// Random value between 1 and 10
 	}
 
@@ -36,7 +36,7 @@ public:
 		passable = false;
 
 		symbol				= 'T';
-		colour.foreground	= 6;
+		colour.foreground	= DARK_YELLOW;
 	}
 
 private:
@@ -55,7 +55,7 @@ public:
 		passable			= true;
 
 		symbol				= 'E';
-		colour.foreground	= 13;
+		colour.foreground	= PINK;
 	}
 
 private:
@@ -72,8 +72,8 @@ public:
 	{
 		passable			= false;
 
-		symbol				= '@';
-		colour.foreground	= 15;
+		colour.foreground	= WHITE;
+		colour.background	= WHITE;
 	}
 };
 

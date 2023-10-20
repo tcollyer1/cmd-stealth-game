@@ -109,7 +109,7 @@ void GameMap::WriteEntity(Entity* entity, int background)
 
 	entity->DrawEntity();
 
-	SetConsoleTextAttribute(handle, 7); // Reset colour
+	SetConsoleTextAttribute(handle, Entity::DARK_WHITE); // Reset colour
 }
 
 void GameMap::SetUpMap()
@@ -146,8 +146,17 @@ void GameMap::SetUpMap()
 			}
 			else
 			{
-				light	= Tile::LightLevel(rand() % 3);
-				terrain = Tile::TerrainType(rand() % 2);
+				if ((x != pPlayer->GetPosition().x) && (y != pPlayer->GetPosition().y))
+				{
+					light = Tile::LightLevel(rand() % 3);
+					terrain = Tile::TerrainType(rand() % 2);
+				}
+				// Always spawn player initially on a dark tile to prevent unfairness on a new game
+				else
+				{
+					light	= Tile::LightLevel::DARK;
+					terrain = Tile::TerrainType::SOFT;
+				}
 
 				Tile* tile = new Tile(x, y, terrain, light); // To be generated SEMI-randomly
 				WriteEntity(tile);
@@ -490,20 +499,37 @@ void Game::GameLoop()
 /// </summary>
 void Game::Run()
 {
-	pMap->SetUpMap();
-	DisplayText(L"H - Show Help", hintLineNo, 10);
-	DisplayText(L"Gold:  0", goldLineNo, 6);
+	bool newGame = StartMenu();	
+
+	if (running)
+	{
+		if (newGame)
+		{
+			pMap->SetUpMap();
+			DisplayText(L"H - Show Help", hintLineNo, 10);
+			DisplayText(L"Gold:  0", goldLineNo, 6);
+		}
+		else
+		{
+			// TODO: load existing game - exit loop for now
+			running = false;
+		}
+		
+	}
 
 	while (running)
 	{
 		GameLoop();
-		ProcessInput();
+		ProcessGameInput();
 		Sleep(50);
 	}
 	
 }
 
-void Game::ProcessInput()
+/// <summary>
+/// Processes user inputs during gameplay.
+/// </summary>
+void Game::ProcessGameInput()
 {
 	bool ko = false;
 
@@ -543,6 +569,43 @@ void Game::ProcessInput()
 		default:
 			break;
 		}
+	}
+}
+
+/// <summary>
+/// Process user menu option input.
+/// </summary>
+/// <param name="selected">Whether a menu item was successfully selected or not</param>
+/// <param name="isNewGame">Whether the user has chosen to start a brand new game or not</param>
+void Game::ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit)
+{
+	char option;
+
+	cin >> option;
+
+	switch (option)
+	{
+	case '1':
+		isNewGame	= true;
+		selected	= true;
+		exit		= false;
+		break;
+	case '2':
+		isNewGame	= false;
+		selected	= true;
+		exit		= false;
+		break;
+	case '3':
+		selected	= true;
+		exit		= true;
+		break;
+	default:
+		selected = false;
+		wcout << "\n[!] Invalid option";
+		cin.clear();
+		cin.ignore(10000, '\n');
+		Sleep(1000);
+		break;
 	}
 }
 
@@ -596,12 +659,75 @@ void Game::DisplayText(wstring text, int lineNo, int colour, bool noRewrite)
 	SetConsoleTextAttribute(handle, 7); // Reset colour
 }
 
+/// <summary>
+/// Startup screen, allowing the user to start a new game (or load one?)
+/// </summary>
+/// <returns>Whether new game has been selected or not</returns>
+bool Game::StartMenu()
+{
+	wifstream	startupTxt("startup.txt"); // Wrap this in a try-catch in case file is deleted
+	wstring		currLine;
+	wstring		txt;
+
+	bool		selected	= false;
+	bool		isNewGame	= false;
+	bool		quit		= false;
+	bool		startNew	= false;	// Return value
+
+	while (getline(startupTxt, currLine))
+	{
+		txt += currLine + L"\n";
+	}
+
+	startupTxt.close();
+
+	while (!selected)
+	{
+		try
+		{
+			system("cls");
+			wcout << txt;
+
+			CONSOLE_SCREEN_BUFFER_INFO cbsi;
+			bool worked = GetConsoleScreenBufferInfo(handle, &cbsi);
+
+			if (!worked)
+			{
+				throw (worked);
+			}
+
+			COORD coords = cbsi.dwCursorPosition;
+
+			wcout << "\n\nEnter a menu option.\t> ";
+
+			ProcessStartupInput(selected, isNewGame, quit);
+		}
+		catch (bool worked)
+		{
+			wcout << "\n\nERROR: failed to get console cursor position";
+			selected	= true;
+			quit		= true;
+		}
+	}
+
+	if (quit)
+	{
+		EndGame();
+	}
+	else
+	{
+		startNew = isNewGame;
+	}
+
+	return (startNew);
+}
+
 void Game::ShowHelp()
 {
 	system("cls");
-	wifstream helpTxt("help.txt"); // Wrap this in a try-catch in case file is deleted
-	wstring txt;
-	bool close = false;
+	wifstream	helpTxt("help.txt"); // Wrap this in a try-catch in case file is deleted
+	wstring		txt;
+	bool		close = false;
 
 	while (getline(helpTxt, txt))
 	{
@@ -629,6 +755,7 @@ void Game::ShowHelp()
 void Game::EndGame()
 {
 	// Delete map, entities etc.
+	// ...
 	running = false;
 	system("cls");
 	wcout << "Thanks for playing!\n";

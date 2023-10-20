@@ -9,8 +9,8 @@ Entity::Entity(int x, int y)
 	position.x = x;
 	position.y = y;
 
-	colour.foreground = 7;
-	colour.background = 0;
+	colour.foreground = DARK_WHITE;
+	colour.background = BLACK;
 	passable = true;
 	symbol = ' ';
 }

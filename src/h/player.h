@@ -17,7 +17,7 @@ public:
 		hasKey				= false;
 		passable			= false;
 		symbol				= 'P';
-		colour.foreground	= 11;
+		colour.foreground	= WHITE;
 		gold				= 0;
 	}
 
