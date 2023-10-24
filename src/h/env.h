@@ -35,8 +35,8 @@ public:
 		opened = false;
 		passable = false;
 
-		symbol				= 'T';
-		colour.foreground	= DARK_YELLOW;
+		symbol				= 'X';
+		colour.foreground	= DARK_RED;
 	}
 
 private:

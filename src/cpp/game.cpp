@@ -113,6 +113,10 @@ void GameMap::WriteEntity(Entity* entity, int background)
 	SetConsoleTextAttribute(handle, Entity::DARK_WHITE); // Reset colour
 }
 
+/// <summary>
+/// Plays sound effect each time a player walks on a hard/soft tile.
+/// </summary>
+/// <param name="t">Tile type player is walking on</param>
 void GameMap::PlaySoundFX(Tile::TerrainType t)
 {
 	int		soundNo		= rand() % 3 + 1;
@@ -130,12 +134,15 @@ void GameMap::PlaySoundFX(Tile::TerrainType t)
 		break;
 	}
 
-	if (L"" != fileName && t == Tile::HARD) // TODO: REMOVE everything after && case later
+	if (L"" != fileName)
 	{
 		PlaySound(fileName.c_str(), NULL, SND_FILENAME | SND_ASYNC);
 	}
 }
 
+/// <summary>
+/// Prepares the basic map including border walls and randomised floor tiles.
+/// </summary>
 void GameMap::SetUpMap()
 {
 	int i, x, y;
@@ -205,6 +212,9 @@ void GameMap::SetUpMap()
 	wcout << '\n';
 }
 
+/// <summary>
+/// Redraws the current map content (all entities) back to the screen after viewing the help menu.
+/// </summary>
 void GameMap::RedrawMap()
 {
 	system("cls");
@@ -214,7 +224,7 @@ void GameMap::RedrawMap()
 		WriteEntity(entities[x]);
 	}
 
-	Game::DisplayText(L"H - Show Help", Game::hintLineNo, 10, true);
+	Game::DisplayText(L"H - Show Help  |  E - Quit", Game::hintLineNo, 10, true);
 	Game::DisplayText(L"Gold:  " + to_wstring(pPlayer->GetGold()), Game::goldLineNo, 6, true);
 
 	if (pPlayer->GetKeyObtained())
@@ -228,18 +238,18 @@ void GameMap::RedrawMap()
 /// </summary>
 void GameMap::DrawContent()
 {
-	int bg, playerBg, treasureBg, exitBg = 0; // TODO: improve this function?
-
-	for (int i = 0; i < enemies.size(); i++)
-	{
-		bg = GetTileBackground(enemies[i]->GetPosition());
-		WriteEntity(enemies[i], bg);
-	}
+	int bg, playerBg, treasureBg, exitBg = 0;
 
 	for (int i = 0; i < gold.size(); i++)
 	{
 		bg = GetTileBackground(gold[i]->GetPosition());
 		WriteEntity(gold[i], bg);
+	}
+
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		bg = GetTileBackground(enemies[i]->GetPosition());
+		WriteEntity(enemies[i], bg);
 	}
 
 	playerBg	= GetTileBackground(pPlayer->GetPosition());
@@ -251,6 +261,30 @@ void GameMap::DrawContent()
 	WriteEntity(pPlayer, playerBg);
 }
 
+void GameMap::UpdateEnemyAwareness()
+{
+	Enemy* currEnemy = NULL;
+
+	Tile::TerrainType terrain;
+
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		currEnemy = enemies[i];
+
+		terrain = pPlayer->GetCurrentTile()->GetTerrainType();
+
+		// If player is within enemy hearing range and is stepping on to a loud tile - alert this enemy
+		if (currEnemy->GetIfInHearingRange(pPlayer->GetPosition()) && terrain == Tile::HARD)
+		{
+			currEnemy->SetAlertLevel(Enemy::SUSPICIOUS);
+		}
+	}
+}
+
+/// <summary>
+/// Handles a player move in a direction specified by the player.
+/// </summary>
+/// <param name="move">Movement direction requested</param>
 void GameMap::RequestPlayerMove(Character::Movement move)
 {
 	Entity::Position oldPos = pPlayer->GetPosition();
@@ -276,9 +310,14 @@ void GameMap::RequestPlayerMove(Character::Movement move)
 		pPlayer->Move(newPos);
 		Tile* t = pPlayer->GetCurrentTile();
 		PlaySoundFX(t->GetTerrainType());
+
+		UpdateEnemyAwareness();
 	}
 }
 
+/// <summary>
+/// If the player is standing on a gold piece, collects it from the map and adds to the player's total gold count.
+/// </summary>
 void GameMap::RequestGoldPickup()
 {
 	Entity::Position playerPos = pPlayer->GetPosition();
@@ -318,6 +357,9 @@ void GameMap::RequestGoldPickup()
 	Game::DisplayText(L"Gold:  " + to_wstring(pPlayer->GetGold()), Game::goldLineNo, 6, true);
 }
 
+/// <summary>
+/// Disables the enemy the player is behind (if any).
+/// </summary>
 void GameMap::RequestEnemyKO()
 {
 	int		enemyIndex		= 0;
@@ -327,11 +369,15 @@ void GameMap::RequestEnemyKO()
 	{
 		Game::DisplayText(L"Player knocked out an enemy!", Game::statusLineNo, 12);
 		enemies[enemyIndex]->SetActive(false);
-		// Then a timer should elapse in the game Run() scope (not here) for 10-20 seconds before enemy is set active again
+		// TODO: Then a timer should elapse in the game Run() scope (not here) for 10-20 seconds before enemy is set active again?
 		// ...
 	}
 }
 
+/// <summary>
+/// Pickpockets the enemy the player is behind (if any), informing the player whether the key was obtained or not.
+/// </summary>
+/// <returns>True if the key was successfully obtained; false otherwise</returns>
 bool GameMap::RequestEnemyPickpocket()
 {
 	int		enemyIndex = 0;
@@ -356,6 +402,11 @@ bool GameMap::RequestEnemyPickpocket()
 	return (behind);
 }
 
+/// <summary>
+/// Calculates a random move (for an enemy).
+/// </summary>
+/// <param name="newPos">Stores the position the the move would result in.</param>
+/// <param name="move">Stores the movement type.</param>
 void GameMap::CalcRandomMove(Entity::Position& newPos, Character::Movement& move)
 {
 	// Get random direction
@@ -381,6 +432,9 @@ void GameMap::CalcRandomMove(Entity::Position& newPos, Character::Movement& move
 	}
 }
 
+/// <summary>
+/// Prepares randomised moves for each enemy on the map.
+/// </summary>
 void GameMap::SetUpEnemyMoves()
 {
 	Enemy* currEnemy = NULL;
@@ -420,6 +474,9 @@ void GameMap::SetUpEnemyMoves()
 	}
 }
 
+/// <summary>
+/// Actions the prepared enemy moves by updating the map.
+/// </summary>
 void GameMap::MoveEnemies()
 {
 	bool found = false;
@@ -626,7 +683,7 @@ void Game::Run()
 		if (newGame)
 		{
 			pMap->SetUpMap();
-			DisplayText(L"H - Show Help", hintLineNo, 10);
+			DisplayText(L"H - Show Help  |  E - Quit", hintLineNo, 10);
 			DisplayText(L"Gold:  0", goldLineNo, 6);
 		}
 		else

@@ -14,6 +14,11 @@ Enemy::AlertLevel Enemy::GetAlertLevel()
 	return (alertLevel);
 }
 
+void Enemy::SetAlertLevel(AlertLevel level)
+{
+	alertLevel = level;
+}
+
 bool Enemy::GetIfHasKey()
 {
 	return (hasKey);
@@ -45,7 +50,7 @@ void Enemy::UpdateSymbol()
 		colour.foreground = GREEN;
 		break;
 	case SUSPICIOUS:
-		colour.foreground = YELLOW;
+		colour.foreground = DARK_YELLOW;
 		break;
 	case SPOTTED:
 		colour.foreground = RED;
@@ -69,7 +74,7 @@ void Enemy::SetActive(bool active)
 	else
 	{
 		colour.foreground = YELLOW;
-		//alertLevel = 1;	// Enemy should be in an alerted state when recovering from takedown
+		//alertLevel = SUSPICIOUS;	// Enemy should be in an alerted state when recovering from takedown
 	}
 }
 
@@ -101,4 +106,25 @@ void Enemy::SetNextPos(Position pos, Movement move)
 Enemy::Position Enemy::GetNextPos()
 {
 	return (nextPos);
+}
+
+bool Enemy::GetIfInHearingRange(Entity::Position pos)
+{
+	bool	inRange	= false;
+
+	int		topY	= position.y - hearingRadius;
+	int		btmY	= position.y + hearingRadius;
+
+	int		leftX	= position.x - hearingRadius;
+	int		rightX	= position.x + hearingRadius;
+
+	if ((pos.x >= leftX)
+		&& (pos.x <= rightX)
+		&& (pos.y >= topY)
+		&& (pos.y <= btmY))
+	{
+		inRange = true;
+	}
+
+	return (inRange);
 }

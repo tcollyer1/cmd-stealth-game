@@ -34,14 +34,16 @@ public:
 
 private:
 	GameMap();
-	void				WriteEntity(Entity* entity, int background = 0);
-	bool				GetIfTraversable(Entity::Position pos, bool updatePlayerTile = false);
-	int					GetTileBackground(Entity::Position pos);
-	void				CalcRandomMove(Entity::Position& newPos, Character::Movement& move);
+	void	WriteEntity(Entity* entity, int background = 0);
+	bool	GetIfTraversable(Entity::Position pos, bool updatePlayerTile = false);
+	int		GetTileBackground(Entity::Position pos);
+	void	CalcRandomMove(Entity::Position& newPos, Character::Movement& move);
 
 	bool	PlayerIsBehindEnemy(int& enemyIdx);
 
 	void	PlaySoundFX(Tile::TerrainType t);
+
+	void	UpdateEnemyAwareness();
 
 	template<typename T> void AddEntities(int num, vector<T*> &entitiesVector);
 

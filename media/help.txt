@@ -2,7 +2,7 @@
 |   INTRODUCTION          |
  =========================
  
-Welcome to CMD Stealth! In this game, your objective is to make your way across the map to the TREASURE (T) and bring it back to the EXIT (E) without getting spotted.
+Welcome to CMD Stealth! In this game, your objective is to make your way across the map to the TREASURE (X) and bring it back to the EXIT (E) without getting spotted.
 
 If an ENEMY (arrow) spots you, it's game over.
 
@@ -13,7 +13,7 @@ Collect GOLD (o) along the way and beat the mission as fast as you can to boost 
  =========================				
 
 P ......... You							
-T ......... Treasure					
+X ......... Treasure					
 E ......... Exit						
 ARROWS .... Enemies						
 . ......... Soft tile

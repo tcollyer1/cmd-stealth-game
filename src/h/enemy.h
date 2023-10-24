@@ -27,17 +27,20 @@ public:
 		colour.foreground	= 13;
 		nextPos.x			= 0;
 		nextPos.y			= 0;
+		hearingRadius		= 3;
 
 		UpdateSymbol();
 	}
 
 	AlertLevel		GetAlertLevel();
+	void			SetAlertLevel(AlertLevel level);
 	bool			GetIfHasKey();
 	virtual void	DrawEntity() override;
 	Direction		GetDirection();
 	virtual void	SetActive(bool active) override;
 	void			SetNextPos(Position pos, Movement move);
 	Position		GetNextPos();
+	bool			GetIfInHearingRange(Position pos);
 
 private:
 	wstring		strSymbol;	// For Unicode arrow characters
@@ -45,6 +48,7 @@ private:
 	bool		hasKey;
 	Direction	dir;
 	Position	nextPos;
+	int			hearingRadius;
 
 	void		UpdateSymbol();
 };
