@@ -15,33 +15,38 @@ class Enemy : public Character
 public:
 	enum Direction { NORTH, EAST, SOUTH, WEST };	//	Direction enemy is facing
 
+	enum AlertLevel { UNAWARE, SUSPICIOUS, SPOTTED };
+
 	Enemy(int x, int y, bool hasKey = false) : Character(x, y)
 	{
-		alertLevel			= 0;
+		alertLevel			= UNAWARE;
 		this->hasKey		= hasKey;
 		passable			= false;
 		dir					= Direction(rand() % 4); // Randomise start direction
 		symbol				= ' '; // Default
 		colour.foreground	= 13;
+		nextPos.x			= 0;
+		nextPos.y			= 0;
 
 		UpdateSymbol();
 	}
 
-	Enemy();
-
-	int				GetAlertLevel();
+	AlertLevel		GetAlertLevel();
 	bool			GetIfHasKey();
 	virtual void	DrawEntity() override;
-	void			Move(Position pos, Movement move);
 	Direction		GetDirection();
 	virtual void	SetActive(bool active) override;
+	void			SetNextPos(Position pos, Movement move);
+	Position		GetNextPos();
 
 private:
 	wstring		strSymbol;	// For Unicode arrow characters
-	int			alertLevel;
+	AlertLevel	alertLevel;
 	bool		hasKey;
 	Direction	dir;
-	void		UpdateSymbol(); // Not needed?
+	Position	nextPos;
+
+	void		UpdateSymbol();
 };
 
 #endif

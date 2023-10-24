@@ -77,10 +77,9 @@ void GameMap::AddEntities(int num, vector<T*> &entitiesVector)
 
 				positionAdded = true;
 			}
-			else
-			{
-				// Continue finding a position
-			}
+			
+			// Otherwise continue finding a position
+			
 		}
 
 	}
@@ -229,11 +228,7 @@ void GameMap::RedrawMap()
 /// </summary>
 void GameMap::DrawContent()
 {
-	int bg, playerBg, treasureBg, exitBg = 0; // TODO: improve this function
-
-	playerBg	= GetTileBackground(pPlayer->GetPosition());
-	treasureBg	= GetTileBackground(pTreasure->GetPosition());
-	exitBg		= GetTileBackground(pExit->GetPosition());
+	int bg, playerBg, treasureBg, exitBg = 0; // TODO: improve this function?
 
 	for (int i = 0; i < enemies.size(); i++)
 	{
@@ -246,6 +241,10 @@ void GameMap::DrawContent()
 		bg = GetTileBackground(gold[i]->GetPosition());
 		WriteEntity(gold[i], bg);
 	}
+
+	playerBg	= GetTileBackground(pPlayer->GetPosition());
+	treasureBg	= GetTileBackground(pTreasure->GetPosition());
+	exitBg		= GetTileBackground(pExit->GetPosition());
 
 	WriteEntity(pTreasure, treasureBg);
 	WriteEntity(pExit, exitBg);
@@ -260,7 +259,7 @@ void GameMap::RequestPlayerMove(Character::Movement move)
 	int		i			= 0;
 	bool	found		= false;
 
-	if (GetIfTraversable(newPos))
+	if (GetIfTraversable(newPos, true))
 	{
 		// Player must previously have been on a walkable tile, so therefore replace it with whatever existing tile was there
 		while (i < tiles.size() && !found)
@@ -357,39 +356,116 @@ bool GameMap::RequestEnemyPickpocket()
 	return (behind);
 }
 
-// Possibly merge this with RequestPlayerMove() somehow...
-void GameMap::MoveEnemy(Character::Movement move, Enemy* enemy)
+void GameMap::CalcRandomMove(Entity::Position& newPos, Character::Movement& move)
 {
-	Entity::Position oldPos = enemy->GetPosition();
-	Entity::Position newPos = enemy->CalculatePos(move);
+	// Get random direction
+	move = Character::Movement(rand() % 5);
 
-	int		i = 0;
-	bool	found = false;
-
-	if (GetIfTraversable(newPos))
+	switch (move)
 	{
-		// Enemy must previously have been on a walkable tile, so therefore replace it with whatever existing tile was there
-		while (i < tiles.size() && !found)
-		{
-			if (tiles[i]->GetPosition() == oldPos)
-			{
-				WriteEntity(tiles[i]);
-				found = true;
-			}
+	case Character::UP:
+		newPos.y--;
+		break;
+	case Character::DOWN:
+		newPos.y++;
+		break;
+	case Character::RIGHT:
+		newPos.x++;
+		break;
+	case Character::LEFT:
+		newPos.x--;
+		break;
+	default:
+		// Default 'NOTHING' case, enemy stays where they are
+		break;
+	}
+}
 
-			i++;
+void GameMap::SetUpEnemyMoves()
+{
+	Enemy* currEnemy = NULL;
+
+	Entity::Position currPos;
+	Entity::Position newPos;
+
+	Character::Movement move;
+
+	vector<Entity::Position> usedPositions; // Holds NEW enemy positions
+
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		currEnemy = enemies[i];
+
+		if (currEnemy->IsActive()) // Don't move if not active (knocked out by player)
+		{
+			currPos = currEnemy->GetPosition();
+
+			newPos	= currPos;
+			move	= Character::NOTHING;
+
+			// Get random next move
+			CalcRandomMove(newPos, move);
+
+			if ((find(usedPositions.begin(), usedPositions.end(), newPos) == usedPositions.end()) && GetIfTraversable(newPos)) // find() points to the last element if not found
+			{
+				usedPositions.push_back(newPos);
+				currEnemy->SetNextPos(newPos, move);
+			}
+			// Enemy doesn't move this turn if their first movement choice is unavailable
+			else
+			{
+				currEnemy->SetNextPos(currPos, Character::NOTHING);
+			}			
+		}
+	}
+}
+
+void GameMap::MoveEnemies()
+{
+	bool found = false;
+
+	Entity::Position oldPos;
+	Entity::Position newPos;
+	Enemy* currEnemy = NULL;
+
+	int i, j;
+
+	for (i = 0; i < enemies.size(); i++)
+	{
+		j		= 0;
+		found	= false;
+
+		currEnemy = enemies[i];
+
+		oldPos = currEnemy->GetPosition();
+		newPos = currEnemy->GetNextPos();
+
+		// If enemy is going to move - must previously have been on a walkable tile, so therefore replace it with whatever existing tile was there
+		if (!(oldPos == newPos))
+		{
+			while (j < tiles.size() && !found)
+			{
+				if (tiles[j]->GetPosition() == oldPos)
+				{
+					WriteEntity(tiles[j]);
+					found = true;
+				}
+
+				j++;
+			}
 		}
 
-		enemy->Move(newPos, move); // Needs to change so that this func can be merged with RequestPlayerMove()
+		currEnemy->Move(newPos);
 	}
 }
 
 /// <summary>
-/// Returns whether a Character can move to a specified position or not.
+/// Returns whether a Player can move to a specified position or not.
 /// </summary>
 /// <param name="pos">Desired position</param>
+/// <param name="updatePlayerTile">Flag to indicate whether to pre-prepare new player tile properties, if moving the player character</param>
 /// <returns>True/false</returns>
-bool GameMap::GetIfTraversable(Entity::Position pos)
+bool GameMap::GetIfTraversable(Entity::Position pos, bool updatePlayerTile)
 {
 	bool traversable	= false;
 	bool found			= false;
@@ -401,10 +477,9 @@ bool GameMap::GetIfTraversable(Entity::Position pos)
 		{
 			traversable = entities[i]->GetIfPassable();
 
-			if (traversable)
+			if (traversable && updatePlayerTile)
 			{
 				// Update player tile to this new one
-				// TODO: WILL NEED TO REWORK THIS WHEN ENEMIES MOVE
 				pPlayer->UpdateCurrentTile((Tile*)entities[i]);
 			}
 
@@ -531,7 +606,7 @@ int Game::GetColourCode(int foreground, int background)
 	return (colour);
 }
 
-void Game::GameLoop()
+void Game::UpdateMap()
 {
 	pMap->DrawContent(); // Update map
 }
@@ -541,6 +616,9 @@ void Game::GameLoop()
 /// </summary>
 void Game::Run()
 {
+	int timeMS	= 0;
+	int iter	= 0;
+
 	bool newGame = StartMenu();	
 
 	if (running) // If "Quit" not selected at the start menu
@@ -561,9 +639,23 @@ void Game::Run()
 
 	while (running)
 	{
-		GameLoop();
+		iter++;
+		UpdateMap();
 		ProcessGameInput();
-		Sleep(10); // 10ms delay between map redraws
+
+		if ((iter % 50 == 0) && (iter % 100 != 0))
+		{
+			// Every 50 game cycles, prepare enemies' next moves and rotate their position accordingly
+			pMap->SetUpEnemyMoves();
+		}
+		else if ((iter % 100 == 0))
+		{
+			// Every other 50 game cycles, action next enemy moves
+			pMap->MoveEnemies();
+		}
+
+		Sleep(10);		// 10ms delay between map redraws
+		timeMS += 10;	// Increase timer by +10ms
 	}	
 }
 

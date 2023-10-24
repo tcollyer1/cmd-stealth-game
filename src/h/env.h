@@ -103,7 +103,6 @@ public:
 private:
 	TerrainType	terrain;
 	LightLevel	lightLevel;
-	//string		sound;
 
 	void DetermineSymbol(TerrainType terrain, LightLevel light);
 };

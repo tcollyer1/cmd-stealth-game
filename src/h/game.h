@@ -25,7 +25,8 @@ public:
 	void		RequestGoldPickup();
 	void		RequestEnemyKO();
 	bool		RequestEnemyPickpocket();
-	void		MoveEnemy(Character::Movement move, Enemy* enemy); // TODO: Rework this
+	void		SetUpEnemyMoves();
+	void		MoveEnemies();
 	void		RedrawMap();
 
 	static const int	height	= 20;
@@ -33,9 +34,10 @@ public:
 
 private:
 	GameMap();
-	void	WriteEntity(Entity* entity, int background = 0);
-	bool	GetIfTraversable(Entity::Position pos);
-	int		GetTileBackground(Entity::Position pos);
+	void				WriteEntity(Entity* entity, int background = 0);
+	bool				GetIfTraversable(Entity::Position pos, bool updatePlayerTile = false);
+	int					GetTileBackground(Entity::Position pos);
+	void				CalcRandomMove(Entity::Position& newPos, Character::Movement& move);
 
 	bool	PlayerIsBehindEnemy(int& enemyIdx);
 
@@ -44,12 +46,6 @@ private:
 	template<typename T> void AddEntities(int num, vector<T*> &entitiesVector);
 
 	int				numEnemies;	// Number of enemies on the map
-
-	// Use this to search in entities if position exists?
-	/*auto exists = [&](Entity::Position& pos)
-	{
-		return find_if(begin(entities), end(entities), [&](Entity& e) { return e.GetPosition() == pos;  }) != end(entities);
-	};*/
 
 	Player*			pPlayer;
 	Treasure*		pTreasure;
@@ -84,7 +80,7 @@ private:
 	GameMap* pMap;
 
 	bool StartMenu();														// Initial screen on startup
-	void GameLoop();														// Set up map etc., call in Run()
+	void UpdateMap();														// Set up map etc., call in Run()
 	void ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit);	// Process start screen user input
 	void ProcessGameInput();												// Process user commands
 	void EndGame();

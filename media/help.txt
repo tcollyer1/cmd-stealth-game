@@ -34,11 +34,13 @@ F ............. Knock out enemy (from behind)
 |   TILES                 |
  =========================
  
-The walkable tiles on the map have a BRIGHTNESS and TERRAIN TYPE property. Each tile will either be BRIGHT, MEDIUM or DARK, and will also be either HARD or SOFT.
+The walkable tiles on the map have a BRIGHTNESS and TERRAIN TYPE property. Each tile will either be BRIGHT, MEDIUM or DARK, and will also be either HARD (*) or SOFT (.).
 
-BRIGHT tiles mean the enemy will be able to see you should you be in their line of sight; MEDIUM means it will take much longer for an enemy to spot you, and DARK renders you completely invisible.
+BRIGHT tiles are light grey in colour, where MEDIUM and DARK tiles are black. DARK tiles are completely black - so you won't be able to tell whether it's HARD or SOFT.
 
-HARD tiles will emit noise when walked on, alerting the enemies audibly. SOFT tiles are impossible to hear when walked on by enemies.
+BRIGHT tiles mean the enemy will be able to see you, should you be in their line of sight; MEDIUM means it will take much longer for an enemy to spot you, and DARK renders you completely invisible.
+
+HARD (*) tiles will emit noise when walked on, alerting the enemies audibly. SOFT (.) tiles are impossible to hear when walked on by enemies.
 
  =========================
 |   ENEMIES               |
@@ -46,13 +48,13 @@ HARD tiles will emit noise when walked on, alerting the enemies audibly. SOFT ti
 
 In order to navigate the map, you'll need to avoid enemies. Enemies can SEE and HEAR you if you're too close.
 
-Enemies have three stages of player awareness: UNAWARE, SUSPICIOUS and SPOTTED. Entering an enemy's line of sight on BRIGHT tiles will get you spotted right away, as will moving across LOUD tiles too close to an enemy.
+Enemies have three stages of player awareness: UNAWARE, SUSPICIOUS and SPOTTED. Entering an enemy's line of sight on BRIGHT tiles will get you spotted right away, as will moving across HARD tiles too close to an enemy.
 
 Make sure to stay outside of an enemy's sight and hearing range where you can.
 
-Where you have to get close, make use of the environment around you. Sneak past unnoticed by moving through DARK, QUIET tiles.
+Where you have to get close, make use of the environment around you. Sneak past unnoticed by moving through DARK, SOFT tiles.
 
-Moving across DARK tiles mean the enemy can't SEE you; moving across QUIET tiles mean the enemy can't HEAR you. One of both ensures complete stealth.
+Moving across DARK tiles mean the enemy can't SEE you; moving across SOFT tiles mean the enemy can't HEAR you. One of both ensures complete stealth.
 
 Sneaking up from behind offers you the opportunity to PICKPOCKET or KNOCK OUT the enemy for a time.
 

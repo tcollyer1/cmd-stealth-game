@@ -9,7 +9,7 @@ void Enemy::DrawEntity()
 	wcout << strSymbol;
 }
 
-int Enemy::GetAlertLevel()
+Enemy::AlertLevel Enemy::GetAlertLevel()
 {
 	return (alertLevel);
 }
@@ -39,16 +39,15 @@ void Enemy::UpdateSymbol()
 		break;
 	}
 
-	// Should replace this with an enum
 	switch (alertLevel)
 	{
-	case 0:
+	case UNAWARE:
 		colour.foreground = GREEN;
 		break;
-	case 1:
+	case SUSPICIOUS:
 		colour.foreground = YELLOW;
 		break;
-	case 2:
+	case SPOTTED:
 		colour.foreground = RED;
 		break;
 	}
@@ -74,9 +73,9 @@ void Enemy::SetActive(bool active)
 	}
 }
 
-void Enemy::Move(Position pos, Movement move)
+void Enemy::SetNextPos(Position pos, Movement move)
 {
-	position = pos;
+	nextPos = pos;
 
 	switch (move)
 	{
@@ -97,4 +96,9 @@ void Enemy::Move(Position pos, Movement move)
 	}
 
 	UpdateSymbol();
+}
+
+Enemy::Position Enemy::GetNextPos()
+{
+	return (nextPos);
 }
