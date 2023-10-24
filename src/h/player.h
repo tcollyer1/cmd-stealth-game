@@ -16,6 +16,7 @@ public:
 	{
 		currDetection		= 0;
 		hasKey				= false;
+		hasTreasure			= false;
 		passable			= false;
 		symbol				= 'P';
 		colour.foreground	= WHITE;
@@ -25,15 +26,22 @@ public:
 
 	void			IncrementGold(int amount);
 	int				GetGold();
+
 	void			SetKeyObtained(bool obtained);
 	bool			GetKeyObtained();
+
+	void			SetTreasureObtained(bool obtained);
+	bool			GetTreasureObtained();
+
 	virtual void	SetActive(bool active) override;
+
 	void			UpdateCurrentTile(Tile* t);
 	Tile*			GetCurrentTile();
 
 private:
 	int		currDetection;
 	bool	hasKey;
+	bool	hasTreasure;
 	int		gold;
 	Tile*	currTile;
 };

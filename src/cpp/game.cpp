@@ -113,6 +113,23 @@ void GameMap::WriteEntity(Entity* entity, int background)
 	SetConsoleTextAttribute(handle, Entity::DARK_WHITE); // Reset colour
 }
 
+bool GameMap::GetIfGameOver()
+{
+	bool				over		= false;
+
+	Entity::Position	exitPos		= pExit->GetPosition();
+	Entity::Position	playerPos	= pPlayer->GetPosition();
+
+	if (pPlayer->GetTreasureObtained() && (exitPos == playerPos))
+	{
+
+		over = true;
+	}
+	// TODO: Else if an enemy is in full alert, game is over
+
+	return (over);
+}
+
 /// <summary>
 /// Plays sound effect each time a player walks on a hard/soft tile.
 /// </summary>
@@ -224,13 +241,19 @@ void GameMap::RedrawMap()
 		WriteEntity(entities[x]);
 	}
 
-	Game::DisplayText(L"H - Show Help  |  E - Quit", Game::hintLineNo, 10, true);
-	Game::DisplayText(L"Gold:  " + to_wstring(pPlayer->GetGold()), Game::goldLineNo, 6, true);
+	Game::DisplayText(L"H - Show Help  |  E - Quit", Game::hintLineNo, Entity::GREEN, true);
+	Game::DisplayText(L"Gold:  " + to_wstring(pPlayer->GetGold()), Game::goldLineNo, Entity::DARK_YELLOW, true);
 
-	if (pPlayer->GetKeyObtained())
+	if (pPlayer->GetKeyObtained() && !pPlayer->GetTreasureObtained())
 	{
-		Game::DisplayText(L"KEY OBTAINED", Game::progressLineNo, 22, true);
-	}	
+		int colour = Game::GetColourCode(Entity::DARK_YELLOW, Entity::DARK_BLUE);
+		Game::DisplayText(L"KEY OBTAINED", Game::progressLineNo, colour, true);
+	}
+	else if (pPlayer->GetTreasureObtained())
+	{
+		int colour = Game::GetColourCode(Entity::DARK_YELLOW, Entity::DARK_BLUE);
+		Game::DisplayText(L"TREASURE OBTAINED", Game::progressLineNo, colour, true);
+	}
 }
 
 /// <summary>
@@ -354,7 +377,7 @@ void GameMap::RequestGoldPickup()
 
 	pPlayer->IncrementGold(value);
 
-	Game::DisplayText(L"Gold:  " + to_wstring(pPlayer->GetGold()), Game::goldLineNo, 6, true);
+	Game::DisplayText(L"Gold:  " + to_wstring(pPlayer->GetGold()), Game::goldLineNo, Entity::DARK_YELLOW, true);
 }
 
 /// <summary>
@@ -367,17 +390,61 @@ void GameMap::RequestEnemyKO()
 
 	if (ko && enemies[enemyIndex]->IsActive())
 	{
-		Game::DisplayText(L"Player knocked out an enemy!", Game::statusLineNo, 12);
+		Game::DisplayText(L"Player knocked out an enemy!", Game::statusLineNo, Entity::RED);
 		enemies[enemyIndex]->SetActive(false);
 		// TODO: Then a timer should elapse in the game Run() scope (not here) for 10-20 seconds before enemy is set active again?
 		// ...
 	}
 }
 
+bool GameMap::RequestTreasureUnlock()
+{
+	Entity::Position treasurePos	= pTreasure->GetPosition();
+	Entity::Position playerPos		= pPlayer->GetPosition();
+
+	// Works out if player is immediately next to the treasure (from any direction)
+	// and also has the key
+	bool nextTo = ((playerPos.x == treasurePos.x + 1)
+					&& (playerPos.y == treasurePos.y))
+					|| ((playerPos.x == treasurePos.x)
+						&& (playerPos.y == treasurePos.y + 1))
+					|| ((playerPos.x == treasurePos.x - 1)
+						&& (playerPos.y == treasurePos.y))
+					|| ((playerPos.x == treasurePos.x)
+						&& (playerPos.y == treasurePos.y - 1));
+	
+	if (nextTo)
+	{
+		if (!pPlayer->GetKeyObtained())
+		{
+			Game::DisplayText(L"You still need the key...", Game::statusLineNo, Entity::RED);
+			nextTo = false;
+		}
+		else
+		{
+			if (!pPlayer->GetTreasureObtained())
+			{
+				pPlayer->SetTreasureObtained(true);
+
+				Game::DisplayText(L"You found the treasure! Find the EXIT", Game::statusLineNo, Entity::PINK);
+				Game::DisplayText(L"TREASURE OBTAINED", Game::progressLineNo, 22, true);
+				pPlayer->IncrementGold(100);	// Treasure will be worth 100 gold. 
+												// TODO: Make fixed value?
+			}
+			else
+			{
+				Game::DisplayText(L"You already have the treasure. Find the EXIT", Game::statusLineNo, Entity::RED);
+			}
+		}
+	}
+
+	return (nextTo);
+}
+
 /// <summary>
 /// Pickpockets the enemy the player is behind (if any), informing the player whether the key was obtained or not.
 /// </summary>
-/// <returns>True if the key was successfully obtained; false otherwise</returns>
+/// <returns>True if key obtained; false otherwise</returns>
 bool GameMap::RequestEnemyPickpocket()
 {
 	int		enemyIndex = 0;
@@ -385,16 +452,22 @@ bool GameMap::RequestEnemyPickpocket()
 
 	if (behind)
 	{
-		if (enemies[enemyIndex]->GetIfHasKey())
+		if (enemies[enemyIndex]->GetIfHasKey() && !pPlayer->GetKeyObtained())
 		{
 			pPlayer->SetKeyObtained(true);
 
-			Game::DisplayText(L"You found the key!", Game::statusLineNo, 13);
-			Game::DisplayText(L"KEY OBTAINED", Game::progressLineNo, 22, true);
+			Game::DisplayText(L"You found the key!", Game::statusLineNo, Entity::PINK);
+
+			int colour = Game::GetColourCode(Entity::DARK_YELLOW, Entity::DARK_BLUE);
+			Game::DisplayText(L"KEY OBTAINED", Game::progressLineNo, colour, true); // TODO: Actual colour here
+		}
+		else if (pPlayer->GetKeyObtained())
+		{
+			Game::DisplayText(L"You already have the key. Find the treasure to unlock it.", Game::statusLineNo, Entity::RED);
 		}
 		else
 		{
-			Game::DisplayText(L"No key here...", Game::statusLineNo, 12);
+			Game::DisplayText(L"No key here...", Game::statusLineNo, Entity::RED);
 			behind = false;
 		}
 	}
@@ -498,7 +571,7 @@ void GameMap::MoveEnemies()
 		newPos = currEnemy->GetNextPos();
 
 		// If enemy is going to move - must previously have been on a walkable tile, so therefore replace it with whatever existing tile was there
-		if (!(oldPos == newPos))
+		if (!(oldPos == newPos) && currEnemy->IsActive()) // Check if active in the instance an enemy had a move prepared 10 iterations ago but the player has since knocked them out
 		{
 			while (j < tiles.size() && !found)
 			{
@@ -510,9 +583,9 @@ void GameMap::MoveEnemies()
 
 				j++;
 			}
-		}
 
-		currEnemy->Move(newPos);
+			currEnemy->Move(newPos);
+		}
 	}
 }
 
@@ -683,8 +756,8 @@ void Game::Run()
 		if (newGame)
 		{
 			pMap->SetUpMap();
-			DisplayText(L"H - Show Help  |  E - Quit", hintLineNo, 10);
-			DisplayText(L"Gold:  0", goldLineNo, 6);
+			DisplayText(L"H - Show Help  |  E - Quit", hintLineNo, Entity::GREEN);
+			DisplayText(L"Gold:  0", goldLineNo, Entity::DARK_YELLOW);
 		}
 		else
 		{
@@ -700,19 +773,27 @@ void Game::Run()
 		UpdateMap();
 		ProcessGameInput();
 
-		if ((iter % 50 == 0) && (iter % 100 != 0))
+		// Process if player is at exit here
+		if (pMap->GetIfGameOver())
 		{
-			// Every 50 game cycles, prepare enemies' next moves and rotate their position accordingly
-			pMap->SetUpEnemyMoves();
+			EndGame();
 		}
-		else if ((iter % 100 == 0))
+		else
 		{
-			// Every other 50 game cycles, action next enemy moves
-			pMap->MoveEnemies();
-		}
+			if ((iter % 50 == 0) && (iter % 100 != 0))
+			{
+				// Every 50 game cycles, prepare enemies' next moves and rotate their position accordingly
+				pMap->SetUpEnemyMoves();
+			}
+			else if ((iter % 100 == 0))
+			{
+				// Every other 50 game cycles, action next enemy moves
+				pMap->MoveEnemies();
+			}
 
-		Sleep(10);		// 10ms delay between map redraws
-		timeMS += 10;	// Increase timer by +10ms
+			Sleep(10);		// 10ms delay between map redraws
+			timeMS += 10;	// Increase timer by +10ms
+		}
 	}	
 }
 
@@ -746,11 +827,14 @@ void Game::ProcessGameInput()
 			ShowHelp();
 			break;
 		case 32: // Space
-			// Prioritise checking if player is behind enemy FIRST (for pickpocketing)
+			// Prioritise checking if player is behind enemy FIRST (for pickpocketing), followed by unlocking the treasure
 			if (!pMap->RequestEnemyPickpocket())
 			{
-				// Otherwise just pick up gold if there's any there
-				pMap->RequestGoldPickup();
+				if (!pMap->RequestTreasureUnlock())
+				{
+					// Otherwise just request to pick up gold if there's any there
+					pMap->RequestGoldPickup();
+				}
 			}	
 			break;
 		case 'f':
@@ -822,7 +906,7 @@ void Game::DisplayText(wstring text, int lineNo, int colour, bool noRewrite)
 		last[idx] = L"";
 	}
 
-	COORD coords = { 0, realLineNo };
+	COORD coords = { 0, (short)realLineNo };
 
 	SetConsoleCursorPosition(handle, coords);
 	SetConsoleTextAttribute(handle, colour);
@@ -863,6 +947,7 @@ bool Game::StartMenu()
 	bool		isNewGame	= false;
 	bool		quit		= false;
 	bool		startNew	= false;	// Return value
+	bool		worked		= false;
 
 	while (getline(startupTxt, currLine))
 	{
@@ -879,7 +964,7 @@ bool Game::StartMenu()
 			wcout << txt;
 
 			CONSOLE_SCREEN_BUFFER_INFO cbsi;
-			bool worked = GetConsoleScreenBufferInfo(handle, &cbsi);
+			worked = GetConsoleScreenBufferInfo(handle, &cbsi);
 
 			if (!worked)
 			{

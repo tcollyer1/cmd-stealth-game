@@ -21,13 +21,15 @@ public:
 	GameMap(int enemies);
 	void		SetUpMap();
 	void		DrawContent();
+	bool		GetIfGameOver();
 	void		RequestPlayerMove(Character::Movement move);
 	void		RequestGoldPickup();
 	void		RequestEnemyKO();
 	bool		RequestEnemyPickpocket();
+	bool		RequestTreasureUnlock();
 	void		SetUpEnemyMoves();
 	void		MoveEnemies();
-	void		RedrawMap();
+	void		RedrawMap();	
 
 	static const int	height	= 20;
 	static const int	width	= 50;
