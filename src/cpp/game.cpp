@@ -202,8 +202,8 @@ void GameMap::SetUpMap()
 				// Always spawn player initially on a dark tile to prevent unfairness on a new game
 				else
 				{
-					light	= Tile::LightLevel::DARK;
-					terrain = Tile::TerrainType::SOFT;
+					light	= Tile::DARK;
+					terrain = Tile::SOFT;
 				}
 
 				Tile* tile = new Tile(x, y, terrain, light); // To be generated SEMI-randomly
@@ -434,6 +434,7 @@ bool GameMap::RequestTreasureUnlock()
 			else
 			{
 				Game::DisplayText(L"You already have the treasure. Find the EXIT", Game::statusLineNo, Entity::RED);
+				nextTo = false;
 			}
 		}
 	}
@@ -464,6 +465,7 @@ bool GameMap::RequestEnemyPickpocket()
 		else if (pPlayer->GetKeyObtained())
 		{
 			Game::DisplayText(L"You already have the key. Find the treasure to unlock it.", Game::statusLineNo, Entity::RED);
+			behind = false;
 		}
 		else
 		{
@@ -853,33 +855,34 @@ void Game::ProcessGameInput()
 /// <param name="isNewGame">Whether the user has chosen to start a brand new game or not</param>
 void Game::ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit)
 {
-	char option;
+	wstring option;
 
-	cin >> option;
+	wcin >> option;
 
-	switch (option)
+	if (option == L"1")
 	{
-	case '1':
 		isNewGame	= true;
 		selected	= true;
 		exit		= false;
-		break;
-	case '2':
+	}
+	else if (option == L"2")
+	{
 		isNewGame	= false;
 		selected	= true;
 		exit		= false;
-		break;
-	case '3':
+	}
+	else if (option == L"3")
+	{
 		selected	= true;
 		exit		= true;
-		break;
-	default:
-		selected = false;
+	}
+	else
+	{
+		selected	= false;
 		wcout << "\n[!] Invalid option";
 		cin.clear();
 		cin.ignore(10000, '\n');
 		Sleep(1000);
-		break;
 	}
 }
 

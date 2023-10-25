@@ -23,8 +23,6 @@ public:
 		this->hasKey		= hasKey;
 		passable			= false;
 		dir					= Direction(rand() % 4); // Randomise start direction
-		symbol				= ' '; // Default
-		colour.foreground	= 13;
 		nextPos.x			= 0;
 		nextPos.y			= 0;
 		hearingRadius		= 3;
