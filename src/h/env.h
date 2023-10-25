@@ -11,11 +11,11 @@ class Gold : public Entity
 public:
 	Gold(int x, int y) : Entity(x, y)
 	{
-		passable = true;
+		passable			= true;
 
-		symbol	= 'o';
-		colour	= 14;
-		value	= rand() % 10 + 1;	// Random value between 1 and 10
+		symbol				= 'o';
+		colour.foreground	= YELLOW;
+		value				= rand() % 10 + 1;	// Random value between 1 and 10
 	}
 
 	int		GetValue();
@@ -35,8 +35,8 @@ public:
 		opened = false;
 		passable = false;
 
-		symbol = 'T';
-		colour = 6;
+		symbol				= 'X';
+		colour.foreground	= DARK_RED;
 	}
 
 private:
@@ -51,11 +51,11 @@ class Exit : public Entity
 public:
 	Exit(int x, int y) : Entity(x, y)
 	{
-		triggered = false;
-		passable = true;
+		triggered			= false;
+		passable			= true;
 
-		symbol = 'E';
-		colour = 13;
+		symbol				= 'E';
+		colour.foreground	= PINK;
 	}
 
 private:
@@ -70,10 +70,10 @@ class Wall : public Entity
 public:
 	Wall(int x, int y) : Entity(x, y)
 	{
-		passable = false;
+		passable			= false;
 
-		symbol = '@';
-		colour = 15;
+		colour.foreground	= WHITE;
+		colour.background	= WHITE;
 	}
 };
 
@@ -83,21 +83,28 @@ public:
 class Tile : public Entity
 {
 public:
-	enum TerrainType { HARD, SOFT };
-	enum LightLevel { BRIGHT, MEDIUM, DARK };
+	enum TerrainType	{ HARD, SOFT };
+	enum LightLevel		{ BRIGHT, MEDIUM, DARK };
 
 	Tile(int x, int y, TerrainType terrain, LightLevel lightLevel) : Entity(x, y)
 	{
 		this->terrain = terrain;
 		this->lightLevel = lightLevel;
 		passable = true;
-		symbol = '.';
-		colour = 8; // Eventually to be determined by tile type
+
+		DetermineSymbol(terrain, lightLevel);		
 	}
+
+	
+
+	TerrainType GetTerrainType();
+	LightLevel	GetLightLevel();
 
 private:
 	TerrainType	terrain;
 	LightLevel	lightLevel;
+
+	void DetermineSymbol(TerrainType terrain, LightLevel light);
 };
 
 #endif

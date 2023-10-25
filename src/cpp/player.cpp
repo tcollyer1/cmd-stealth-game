@@ -20,7 +20,27 @@ bool Player::GetKeyObtained()
 	return (hasKey);
 }
 
+void Player::SetTreasureObtained(bool obtained)
+{
+	hasTreasure = obtained;
+}
+
+bool Player::GetTreasureObtained()
+{
+	return (hasTreasure);
+}
+
 void Player::SetActive(bool active)
 {
 	isActive = active;
+}
+
+void Player::UpdateCurrentTile(Tile* t)
+{
+	currTile = t;
+}
+
+Tile* Player::GetCurrentTile()
+{
+	return (currTile);
 }

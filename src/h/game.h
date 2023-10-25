@@ -21,22 +21,31 @@ public:
 	GameMap(int enemies);
 	void		SetUpMap();
 	void		DrawContent();
+	bool		GetIfGameOver();
 	void		RequestPlayerMove(Character::Movement move);
 	void		RequestGoldPickup();
 	void		RequestEnemyKO();
 	bool		RequestEnemyPickpocket();
-	void		MoveEnemy(Character::Movement move, Enemy* enemy); // Rework this
-	void		RedrawMap();
+	bool		RequestTreasureUnlock();
+	void		SetUpEnemyMoves();
+	void		MoveEnemies();
+	void		RedrawMap();	
 
 	static const int	height	= 20;
 	static const int	width	= 50;
 
 private:
 	GameMap();
-	void	WriteEntity(Entity* entity);
-	bool	GetIfTraversable(Entity::Position pos);
+	void	WriteEntity(Entity* entity, int background = 0);
+	bool	GetIfTraversable(Entity::Position pos, bool updatePlayerTile = false);
+	int		GetTileBackground(Entity::Position pos);
+	void	CalcRandomMove(Entity::Position& newPos, Character::Movement& move);
 
 	bool	PlayerIsBehindEnemy(int& enemyIdx);
+
+	void	PlaySoundFX(Tile::TerrainType t);
+
+	void	UpdateEnemyAwareness();
 
 	template<typename T> void AddEntities(int num, vector<T*> &entitiesVector);
 
@@ -69,11 +78,15 @@ public:
 
 	static void DisplayText(wstring text, int lineNo, int colour, bool noRewrite = false);
 
+	static int	GetColourCode(int foreground, int background);
+
 private:
 	GameMap* pMap;
 
-	void GameLoop();		// Set up map etc., call in Run()
-	void ProcessInput();	// Process user commands
+	bool StartMenu();														// Initial screen on startup
+	void UpdateMap();														// Set up map etc., call in Run()
+	void ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit);	// Process start screen user input
+	void ProcessGameInput();												// Process user commands
 	void EndGame();
 	void ShowHelp();
 

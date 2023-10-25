@@ -9,9 +9,14 @@ void Enemy::DrawEntity()
 	wcout << strSymbol;
 }
 
-int Enemy::GetAlertLevel()
+Enemy::AlertLevel Enemy::GetAlertLevel()
 {
 	return (alertLevel);
+}
+
+void Enemy::SetAlertLevel(AlertLevel level)
+{
+	alertLevel = level;
 }
 
 bool Enemy::GetIfHasKey()
@@ -39,17 +44,16 @@ void Enemy::UpdateSymbol()
 		break;
 	}
 
-	// Should replace this with an enum
 	switch (alertLevel)
 	{
-	case 0:
-		colour = 10;
+	case UNAWARE:
+		colour.foreground = GREEN;
 		break;
-	case 1:
-		colour = 14;
+	case SUSPICIOUS:
+		colour.foreground = DARK_YELLOW;
 		break;
-	case 2:
-		colour = 12;
+	case SPOTTED:
+		colour.foreground = RED;
 		break;
 	}
 }
@@ -65,17 +69,18 @@ void Enemy::SetActive(bool active)
 
 	if (!active)
 	{
-		colour = 8;
+		colour.foreground = BLUE;
 	}
 	else
 	{
-		colour = 13;
+		colour.foreground = YELLOW;
+		//alertLevel = SUSPICIOUS;	// Enemy should be in an alerted state when recovering from takedown
 	}
 }
 
-void Enemy::Move(Position pos, Movement move)
+void Enemy::SetNextPos(Position pos, Movement move)
 {
-	position = pos;
+	nextPos = pos;
 
 	switch (move)
 	{
@@ -96,4 +101,30 @@ void Enemy::Move(Position pos, Movement move)
 	}
 
 	UpdateSymbol();
+}
+
+Enemy::Position Enemy::GetNextPos()
+{
+	return (nextPos);
+}
+
+bool Enemy::GetIfInHearingRange(Entity::Position pos)
+{
+	bool	inRange	= false;
+
+	int		topY	= position.y - hearingRadius;
+	int		btmY	= position.y + hearingRadius;
+
+	int		leftX	= position.x - hearingRadius;
+	int		rightX	= position.x + hearingRadius;
+
+	if ((pos.x >= leftX)
+		&& (pos.x <= rightX)
+		&& (pos.y >= topY)
+		&& (pos.y <= btmY))
+	{
+		inRange = true;
+	}
+
+	return (inRange);
 }

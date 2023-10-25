@@ -23,12 +23,40 @@ public:
 		int y;
 	};
 
+	enum Colours
+	{
+		BLACK = 0,
+		DARK_BLUE,
+		DARK_GREEN,
+		DARK_CYAN,
+		DARK_RED,
+		DARK_PINK,
+		DARK_YELLOW,
+		DARK_WHITE,
+		GREY,
+		BLUE,
+		GREEN,
+		CYAN,
+		RED,
+		PINK,
+		YELLOW,
+		WHITE
+	};
+
+	struct Colour
+	{
+		int foreground;
+		int background;
+	};
+
 	Entity(int x, int y);
 
 	char			GetSymbol();
-	int				GetColour();
+	Colour			GetColour();
 
 	bool			GetIfPassable();
+
+	bool			HasBackgroundColour();
 
 	Position		GetPosition();
 
@@ -39,11 +67,11 @@ public:
 protected:
 	Position		position;
 	char			symbol;
-	int				colour;
+	Colour			colour;
 	bool			passable;	// Indicates whether this entity can be passed through by other entities (player/enemy), such as floor
 
 	void			SetSymbol(char symbol);
-	void			SetColour(int colour);
+	void			SetColour(int fg, int bg);
 
 private:
 	Entity();

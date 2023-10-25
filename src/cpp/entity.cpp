@@ -1,4 +1,5 @@
 #include "..\h\entity.h"
+#include "..\h\game.h"
 #include <iostream>
 
 using namespace std;
@@ -8,7 +9,8 @@ Entity::Entity(int x, int y)
 	position.x = x;
 	position.y = y;
 
-	colour = 7;
+	colour.foreground = DARK_WHITE;
+	colour.background = BLACK;
 	passable = true;
 	symbol = ' ';
 }
@@ -18,9 +20,10 @@ void Entity::SetSymbol(char symbol)
 	this->symbol = symbol;
 }
 
-void Entity::SetColour(int colour)
+void Entity::SetColour(int fg, int bg)
 {
-	this->colour = colour;
+	colour.foreground = fg;
+	colour.background = bg;
 }
 
 Entity::Position Entity::GetPosition()
@@ -33,9 +36,21 @@ char Entity::GetSymbol()
 	return (symbol);
 }
 
-int Entity::GetColour()
+Entity::Colour Entity::GetColour()
 {
 	return (colour);
+}
+
+bool Entity::HasBackgroundColour()
+{
+	bool hasBackground = false;
+
+	if (this->colour.background != 0)
+	{
+		hasBackground = true;
+	}
+
+	return (hasBackground);
 }
 
 bool Entity::GetIfPassable()
