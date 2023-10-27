@@ -223,7 +223,8 @@ void Enemy::CheckIfInLOS(Entity::Position pos, int timeMS, Tile::LightLevel ligh
 	if (spotted)
 	{
 		// Game over...
-		alertLevel = SPOTTED;
+		detection	= maxDetection;
+		alertLevel	= SPOTTED;
 	}
 	else if (inLOS)
 	{
@@ -281,7 +282,8 @@ void Enemy::ProcessAlertedState(int timeMS, Position playerPosActual)
 
 		if (playerFound)
 		{
-			alertLevel = SPOTTED;
+			detection	= maxDetection;
+			alertLevel	= SPOTTED;
 		}
 
 		if (timeMS >= alertStartTime + alertTimeDuration)
