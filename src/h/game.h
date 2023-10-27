@@ -29,7 +29,9 @@ public:
 	bool		RequestTreasureUnlock();
 	void		SetUpEnemyMoves(int currTimeMS);
 	void		MoveEnemies();
-	void		RedrawMap();	
+	void		RedrawMap();
+
+	void		UpdateEnemyAwareness(int currTimeMS);
 
 	static const int	height	= 20;
 	static const int	width	= 50;
@@ -45,8 +47,6 @@ private:
 	bool	PlayerIsBehindEnemy(int& enemyIdx);
 
 	void	PlaySoundFX(Tile::TerrainType t);
-
-	void	UpdateEnemyAwareness(int currTimeMS);
 
 	void	OutputDetectionStr();
 

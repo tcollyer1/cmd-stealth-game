@@ -206,22 +206,29 @@ void GameMap::SetUpMap()
 			{
 				if (!((x == pPlayer->GetPosition().x) && (y == pPlayer->GetPosition().y)))
 				{
-					light = Tile::LightLevel(rand() % 3);
+					light	= Tile::LightLevel(rand() % 3);
 					terrain = Tile::TerrainType(rand() % 2);
+
+					Tile* tile = new Tile(x, y, terrain, light); // To be generated SEMI-randomly
+
+					WriteEntity(tile);
+					tiles.push_back(tile);
+					entities.push_back(tile);
 				}
 				// Always spawn player initially on a dark tile to prevent unfairness on a new game
 				else
 				{
 					light	= Tile::DARK;
 					terrain = Tile::SOFT;
+
+					Tile* tile = new Tile(x, y, terrain, light);
+
+					pPlayer->UpdateCurrentTile(tile);
+
+					WriteEntity(tile);
+					tiles.push_back(tile);
+					entities.push_back(tile);
 				}
-
-				Tile* tile = new Tile(x, y, terrain, light); // To be generated SEMI-randomly
-				WriteEntity(tile);
-
-				tiles.push_back(tile);
-
-				entities.push_back(tile);
 			}			
 		}
 		wcout << '\n';
@@ -258,20 +265,32 @@ void GameMap::OutputDetectionStr()
 	switch (detection)
 	{
 	case 0:
-		str = L"Detection:  [...]";
+		str = L"Detection:  [......]";
 		colour = Entity::GREEN;
 		break;
 	case 1:
-		str = L"Detection:  [|..]";
+		str = L"Detection:  [|.....]";
 		colour = Entity::YELLOW;
 		break;
 	case 2:
-		str = L"Detection:  [||.]";
-		colour = Entity::RED;
+		str = L"Detection:  [||....]";
+		colour = Entity::DARK_YELLOW;
 		break;
 	case 3:
-		str = L"Detection:  [|||]";
+		str = L"Detection:  [|||...]";
 		colour = Entity::RED;
+		break;
+	case 4:
+		str = L"Detection:  [||||..]";
+		colour = Entity::RED;
+		break;
+	case 5:
+		str = L"Detection:  [|||||.]";
+		colour = Entity::DARK_RED;
+		break;
+	case 6:
+		str = L"Detection:  [||||||]";
+		colour = Entity::DARK_RED;
 		break;
 	}
 
@@ -343,18 +362,22 @@ void GameMap::UpdateEnemyAwareness(int currTimeMS)
 {
 	Enemy* currEnemy = NULL;
 
-	Tile::TerrainType terrain;
+	Tile::TerrainType	terrain;
+	Tile::LightLevel	lightLevel;
 
 	for (int i = 0; i < enemies.size(); i++)
 	{
 		currEnemy = enemies[i];
 
-		terrain = pPlayer->GetCurrentTile()->GetTerrainType();
+		terrain		= pPlayer->GetCurrentTile()->GetTerrainType();
+		lightLevel	= pPlayer->GetCurrentTile()->GetLightLevel();
 
 		if (terrain == Tile::HARD)
 		{
 			currEnemy->CheckIfInHearingRange(pPlayer->GetPosition(), currTimeMS);
 		}
+
+		currEnemy->CheckIfInLOS(pPlayer->GetPosition(), currTimeMS, lightLevel);
 	}
 }
 
@@ -388,10 +411,6 @@ void GameMap::RequestPlayerMove(Character::Movement move, int currTimeMS)
 		pPlayer->Move(newPos);
 		Tile* t = pPlayer->GetCurrentTile();
 		PlaySoundFX(t->GetTerrainType());
-
-		UpdateEnemyAwareness(currTimeMS);
-
-
 	}
 }
 
@@ -919,7 +938,7 @@ void Game::Run()
 			pMap->SetUpMap();
 			DisplayText(L"H - Show Help  |  E - Quit", hintLineNo, Entity::WHITE);
 			DisplayText(L"Gold:  0", goldLineNo, Entity::DARK_YELLOW);
-			DisplayText(L"Detection:  [...]", alertnessLineNo, Entity::GREEN);
+			DisplayText(L"Detection:  [.....]", alertnessLineNo, Entity::GREEN);
 		}
 		else
 		{
@@ -938,12 +957,14 @@ void Game::Run()
 		// Process if player is at exit here
 		if (pMap->GetIfGameOver())
 		{
+			Sleep(1000);
 			EndGame();
 		}
 		else
 		{
 			if ((iter % 50 == 0) && (iter % 100 != 0))
 			{
+				pMap->UpdateEnemyAwareness(timeMS);
 				// Every 50 game cycles, prepare enemies' next moves and rotate their position accordingly
 				pMap->SetUpEnemyMoves(timeMS);
 			}

@@ -4,6 +4,7 @@
 #include <random>
 
 #include "entity.h"
+#include "env.h"
 
 using namespace std;
 
@@ -25,7 +26,6 @@ public:
 		dir						= Direction(rand() % 4); // Randomise start direction
 		nextPos.x				= 0;
 		nextPos.y				= 0;
-		hearingRadius			= 3;
 
 		playerLastKnownPos.x	= 0;
 		playerLastKnownPos.y	= 0;
@@ -47,6 +47,7 @@ public:
 	AlertLevel		GetAlertLevel();
 	Position		GetPlayerLastKnownPos();
 	void			CheckIfInHearingRange(Position pos, int timeMS);
+	void			CheckIfInLOS(Position pos, int timeMS, Tile::LightLevel light);
 	int				GetDetectionLevel();
 	void			ClearDetectionLevel();
 
@@ -57,12 +58,13 @@ private:
 	Direction	dir;
 	Position	nextPos;
 	Position	playerLastKnownPos;
-	int			hearingRadius;
+	const int	hearingRadius		= 3;
+	const int	lineOfSight			= 6;
 	int			detection;
 	int			alertStartTime;
 
 	const int	alertTimeDuration	= 5000;
-	const int	maxDetection		= 3;
+	const int	maxDetection		= 6;
 
 	void		UpdateSymbol();
 };

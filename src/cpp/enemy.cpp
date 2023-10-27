@@ -125,7 +125,7 @@ void Enemy::CheckIfInHearingRange(Entity::Position pos, int timeMS)
 	{
 		if (alertLevel == UNAWARE)
 		{
-			alertLevel		= SUSPICIOUS;
+			alertLevel	= SUSPICIOUS;
 		}
 
 		alertStartTime		= timeMS;
@@ -137,6 +137,109 @@ void Enemy::CheckIfInHearingRange(Entity::Position pos, int timeMS)
 			alertLevel = SPOTTED;
 		}
 
+	}
+}
+
+void Enemy::CheckIfInLOS(Entity::Position pos, int timeMS, Tile::LightLevel light)
+{
+	bool inLOS		= false;
+	bool spotted	= false;
+
+	// For dark tiles: completely invisible
+	// For medium tiles: go into alert at all distances within line of sight range
+	// For light tiles: go into alert at 2nd half of distance within line of sight range, immediate game over if in first half
+
+	if (light != Tile::DARK)
+	{
+		switch (dir)
+		{
+		case NORTH:
+			if (((pos.x == position.x)
+				|| (pos.x == position.x - 1)
+				|| (pos.x == position.x + 1))
+				&& (pos.y >= position.y - lineOfSight)
+				&& (pos.y <= position.y)
+				&& (isActive))
+			{
+				inLOS = true;
+
+				if ((pos.y >= position.y - (lineOfSight / 2)) && (light == Tile::BRIGHT))
+				{
+					spotted = true;
+				}
+			}
+			break;
+		case SOUTH:
+			if (((pos.x == position.x)
+				|| (pos.x == position.x - 1)
+				|| (pos.x == position.x + 1))
+				&& (pos.y <= position.y + lineOfSight)
+				&& (pos.y >= position.y)
+				&& (isActive))
+			{
+				inLOS = true;
+
+				if ((pos.y <= position.y + (lineOfSight / 2)) && (light == Tile::BRIGHT))
+				{
+					spotted = true;
+				}
+			}
+			break;
+		case WEST:
+			if (((pos.y == position.y)
+				|| (pos.y == position.y - 1)
+				|| (pos.y == position.y + 1))
+				&& (pos.x >= position.x - lineOfSight)
+				&& (pos.x <= position.x)
+				&& (isActive))
+			{
+				inLOS = true;
+
+				if ((pos.x >= position.x - (lineOfSight / 2)) && (light == Tile::BRIGHT))
+				{
+					spotted = true;
+				}
+			}
+			break;
+		case EAST:
+			if (((pos.y == position.y)
+				|| (pos.y == position.y - 1)
+				|| (pos.y == position.y + 1))
+				&& (pos.x <= position.x + lineOfSight)
+				&& (pos.x >= position.x)
+				&& (isActive))
+			{
+				inLOS = true;
+
+				if ((pos.x <= position.x + (lineOfSight / 2)) && (light == Tile::BRIGHT))
+				{
+					spotted = true;
+				}
+			}
+			break;
+		}
+	}	
+
+	if (spotted)
+	{
+		// Game over...
+		alertLevel = SPOTTED;
+	}
+	else if (inLOS)
+	{
+		if (alertLevel == UNAWARE)
+		{
+			alertLevel = SUSPICIOUS;
+		}
+
+		alertStartTime = timeMS;
+		playerLastKnownPos = pos;
+
+		if (++detection == maxDetection)
+		{
+			// Game over...
+			alertLevel = SPOTTED;
+		}
 	}
 }
 
