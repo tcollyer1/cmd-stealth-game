@@ -14,11 +14,6 @@ Enemy::AlertLevel Enemy::GetAlertLevel()
 	return (alertLevel);
 }
 
-void Enemy::SetAlertLevel(AlertLevel level)
-{
-	alertLevel = level;
-}
-
 bool Enemy::GetIfHasKey()
 {
 	return (hasKey);
@@ -103,28 +98,54 @@ void Enemy::SetNextPos(Position pos, Movement move)
 	UpdateSymbol();
 }
 
+Entity::Position Enemy::GetPlayerLastKnownPos()
+{
+	return (playerLastKnownPos);
+}
+
 Enemy::Position Enemy::GetNextPos()
 {
 	return (nextPos);
 }
 
-bool Enemy::GetIfInHearingRange(Entity::Position pos)
+void Enemy::CheckIfInHearingRange(Entity::Position pos, int timeMS)
 {
-	bool	inRange	= false;
-
 	int		topY	= position.y - hearingRadius;
 	int		btmY	= position.y + hearingRadius;
 
 	int		leftX	= position.x - hearingRadius;
 	int		rightX	= position.x + hearingRadius;
 
+	// If player is in hearing range
 	if ((pos.x >= leftX)
 		&& (pos.x <= rightX)
 		&& (pos.y >= topY)
-		&& (pos.y <= btmY))
+		&& (pos.y <= btmY)
+		&& (isActive))
 	{
-		inRange = true;
-	}
+		if (alertLevel == UNAWARE)
+		{
+			alertLevel		= SUSPICIOUS;
+		}
 
-	return (inRange);
+		alertStartTime		= timeMS;
+		playerLastKnownPos	= pos;
+
+		if (++confidence == maxConfidence)
+		{
+			// TODO: Game over...
+			alertLevel = SPOTTED;
+		}
+
+	}
+}
+
+void Enemy::ProcessAlertedState(int timeMS)
+{
+	if (timeMS >= alertStartTime + alertTimeDuration && alertLevel == SUSPICIOUS)
+	{
+		confidence		= 0;
+		alertLevel		= UNAWARE;
+		alertStartTime	= 0;
+	}
 }

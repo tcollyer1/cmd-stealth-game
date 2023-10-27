@@ -122,10 +122,20 @@ bool GameMap::GetIfGameOver()
 
 	if (pPlayer->GetTreasureObtained() && (exitPos == playerPos))
 	{
-
 		over = true;
 	}
-	// TODO: Else if an enemy is in full alert, game is over
+	else
+	{
+		// TODO: Else if an enemy is in full alert, game is over
+		for (int i = 0; i < enemies.size(); i++)
+		{
+			if (enemies[i]->GetAlertLevel() == Enemy::SPOTTED)
+			{
+				over = true;
+			}
+		}
+	}
+	
 
 	return (over);
 }
@@ -284,7 +294,7 @@ void GameMap::DrawContent()
 	WriteEntity(pPlayer, playerBg);
 }
 
-void GameMap::UpdateEnemyAwareness()
+void GameMap::UpdateEnemyAwareness(int currTimeMS)
 {
 	Enemy* currEnemy = NULL;
 
@@ -296,10 +306,9 @@ void GameMap::UpdateEnemyAwareness()
 
 		terrain = pPlayer->GetCurrentTile()->GetTerrainType();
 
-		// If player is within enemy hearing range and is stepping on to a loud tile - alert this enemy
-		if (currEnemy->GetIfInHearingRange(pPlayer->GetPosition()) && terrain == Tile::HARD)
+		if (terrain == Tile::HARD)
 		{
-			currEnemy->SetAlertLevel(Enemy::SUSPICIOUS);
+			currEnemy->CheckIfInHearingRange(pPlayer->GetPosition(), currTimeMS);
 		}
 	}
 }
@@ -308,7 +317,8 @@ void GameMap::UpdateEnemyAwareness()
 /// Handles a player move in a direction specified by the player.
 /// </summary>
 /// <param name="move">Movement direction requested</param>
-void GameMap::RequestPlayerMove(Character::Movement move)
+/// <param name="currTimeMS">The current time elapsed - to determine when to remove enemy alertness</param>
+void GameMap::RequestPlayerMove(Character::Movement move, int currTimeMS)
 {
 	Entity::Position oldPos = pPlayer->GetPosition();
 	Entity::Position newPos = pPlayer->CalculatePos(move);
@@ -334,7 +344,7 @@ void GameMap::RequestPlayerMove(Character::Movement move)
 		Tile* t = pPlayer->GetCurrentTile();
 		PlaySoundFX(t->GetTerrainType());
 
-		UpdateEnemyAwareness();
+		UpdateEnemyAwareness(currTimeMS);
 	}
 }
 
@@ -487,35 +497,46 @@ void GameMap::CalcRandomMove(Entity::Position& newPos, Character::Movement& move
 	// Get random direction
 	move = Character::Movement(rand() % 5);
 
+	Entity::Position proposedPos = newPos;
+
 	switch (move)
 	{
 	case Character::UP:
-		newPos.y--;
+		proposedPos.y--;
 		break;
 	case Character::DOWN:
-		newPos.y++;
+		proposedPos.y++;
 		break;
 	case Character::RIGHT:
-		newPos.x++;
+		proposedPos.x++;
 		break;
 	case Character::LEFT:
-		newPos.x--;
+		proposedPos.x--;
 		break;
 	default:
 		// Default 'NOTHING' case, enemy stays where they are
 		break;
+	}
+
+	if (GetIfTraversable(proposedPos))
+	{
+		newPos = proposedPos;
 	}
 }
 
 /// <summary>
 /// Prepares randomised moves for each enemy on the map.
 /// </summary>
-void GameMap::SetUpEnemyMoves()
+void GameMap::SetUpEnemyMoves(int currTimeMS)
 {
 	Enemy* currEnemy = NULL;
 
 	Entity::Position currPos;
 	Entity::Position newPos;
+
+	// For if aware of the player
+	Entity::Position targetPos;
+	int xDiff, yDiff;
 
 	Character::Movement move;
 
@@ -525,6 +546,8 @@ void GameMap::SetUpEnemyMoves()
 	{
 		currEnemy = enemies[i];
 
+		currEnemy->ProcessAlertedState(currTimeMS);
+
 		if (currEnemy->IsActive()) // Don't move if not active (knocked out by player)
 		{
 			currPos = currEnemy->GetPosition();
@@ -532,10 +555,20 @@ void GameMap::SetUpEnemyMoves()
 			newPos	= currPos;
 			move	= Character::NOTHING;
 
-			// Get random next move
-			CalcRandomMove(newPos, move);
+			// TODO: If enemy is in alerted state, start moving towards player
+			if (currEnemy->GetAlertLevel() == Enemy::SUSPICIOUS)
+			{
+				targetPos = currEnemy->GetPlayerLastKnownPos();
 
-			if ((find(usedPositions.begin(), usedPositions.end(), newPos) == usedPositions.end()) && GetIfTraversable(newPos)) // find() points to the last element if not found
+				CalcSpecificMove(move, newPos, currPos, targetPos);
+			}
+			else
+			{
+				// Get random next move
+				CalcRandomMove(newPos, move);
+			}
+
+			if ((find(usedPositions.begin(), usedPositions.end(), newPos) == usedPositions.end())) // find() points to the last element if not found
 			{
 				usedPositions.push_back(newPos);
 				currEnemy->SetNextPos(newPos, move);
@@ -545,6 +578,77 @@ void GameMap::SetUpEnemyMoves()
 			{
 				currEnemy->SetNextPos(currPos, Character::NOTHING);
 			}			
+		}
+	}
+}
+
+void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& proposedPos, Entity::Position currPos, Entity::Position targetPos)
+{
+	int xDiff, yDiff;
+
+	bool hasMove = false;
+
+	xDiff = abs(currPos.x - targetPos.x);
+	yDiff = abs(currPos.y - targetPos.y);
+
+	// If the x difference is smaller than, or the same as, the y difference, try to move left/right
+	// In the event the enemy cannot move in the desired direction here, attempt the y direction
+	if (((xDiff < yDiff || xDiff == yDiff || yDiff == 0) && xDiff != 0))
+	{
+		// Try to move left/right
+		if (targetPos.x < currPos.x)
+		{
+			proposedPos.x--;
+			move = Character::LEFT;
+		}
+		else
+		{
+			proposedPos.x++;
+			move = Character::RIGHT;
+		}
+
+		if (GetIfTraversable(proposedPos))
+		{
+			hasMove = true;
+		}
+		else
+		{
+			hasMove = false;
+			proposedPos = currPos;
+			move = Character::NOTHING;
+		}		
+	}
+
+	// - If the y difference is smaller than the x distance, try to move up/down
+	// - If the player was unable to move left/right, try to move up/down
+	if ((yDiff < xDiff || ((yDiff == 0 && xDiff != 0) || yDiff != 0)) && !hasMove)
+	{
+		// Try to move up/down
+		if (targetPos.y < currPos.y)
+		{
+			proposedPos.y--;
+			move = Character::UP;
+		}
+		else
+		{
+			proposedPos.y++;
+			move = Character::DOWN;
+		}
+
+		if (!GetIfTraversable(proposedPos))
+		{
+			proposedPos = currPos;
+			move = Character::NOTHING;
+
+			// Reset proposedPos and get a random move instead
+			CalcRandomMove(proposedPos, move);
+
+			if (!GetIfTraversable(proposedPos))
+			{
+				// If still can't move, just have enemy stay where they are
+				proposedPos = currPos;
+				move = Character::NOTHING;
+			}
 		}
 	}
 }
@@ -773,7 +877,7 @@ void Game::Run()
 	{
 		iter++;
 		UpdateMap();
-		ProcessGameInput();
+		ProcessGameInput(timeMS);
 
 		// Process if player is at exit here
 		if (pMap->GetIfGameOver())
@@ -785,7 +889,7 @@ void Game::Run()
 			if ((iter % 50 == 0) && (iter % 100 != 0))
 			{
 				// Every 50 game cycles, prepare enemies' next moves and rotate their position accordingly
-				pMap->SetUpEnemyMoves();
+				pMap->SetUpEnemyMoves(timeMS);
 			}
 			else if ((iter % 100 == 0))
 			{
@@ -802,7 +906,7 @@ void Game::Run()
 /// <summary>
 /// Processes user inputs during gameplay.
 /// </summary>
-void Game::ProcessGameInput()
+void Game::ProcessGameInput(int currTimeMS)
 {
 	bool ko = false;
 
@@ -811,16 +915,16 @@ void Game::ProcessGameInput()
 		switch (_getch())
 		{
 		case 'w':
-			pMap->RequestPlayerMove(Character::UP);
+			pMap->RequestPlayerMove(Character::UP, currTimeMS);
 			break;
 		case 's':
-			pMap->RequestPlayerMove(Character::DOWN);
+			pMap->RequestPlayerMove(Character::DOWN, currTimeMS);
 			break;
 		case 'a':
-			pMap->RequestPlayerMove(Character::LEFT);
+			pMap->RequestPlayerMove(Character::LEFT, currTimeMS);
 			break;
 		case 'd':
-			pMap->RequestPlayerMove(Character::RIGHT);
+			pMap->RequestPlayerMove(Character::RIGHT, currTimeMS);
 			break;
 		case 'e':
 			EndGame();
