@@ -29,7 +29,7 @@ public:
 
 		playerLastKnownPos.x	= 0;
 		playerLastKnownPos.y	= 0;
-		confidence				= 0;
+		detection				= 0;
 		alertStartTime			= 0;
 
 		UpdateSymbol();
@@ -41,12 +41,14 @@ public:
 	virtual void	SetActive(bool active) override;
 	void			SetNextPos(Position pos, Movement move);
 	Position		GetNextPos();
-	void			ProcessAlertedState(int timeMS);
+	void			ProcessAlertedState(int timeMS, Position playerPosActual);
 
 	// Player-related functions
 	AlertLevel		GetAlertLevel();
 	Position		GetPlayerLastKnownPos();
 	void			CheckIfInHearingRange(Position pos, int timeMS);
+	int				GetDetectionLevel();
+	void			ClearDetectionLevel();
 
 private:
 	wstring		strSymbol;	// For Unicode arrow characters
@@ -56,11 +58,11 @@ private:
 	Position	nextPos;
 	Position	playerLastKnownPos;
 	int			hearingRadius;
-	int			confidence;
+	int			detection;
 	int			alertStartTime;
 
 	const int	alertTimeDuration	= 5000;
-	const int	maxConfidence		= 3;
+	const int	maxDetection		= 3;
 
 	void		UpdateSymbol();
 };

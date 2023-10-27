@@ -48,6 +48,8 @@ private:
 
 	void	UpdateEnemyAwareness(int currTimeMS);
 
+	void	OutputDetectionStr();
+
 	template<typename T> void AddEntities(int num, vector<T*> &entitiesVector);
 
 	int				numEnemies;	// Number of enemies on the map
@@ -75,6 +77,7 @@ public:
 	static const int	hintLineNo		= 1;
 	static const int	goldLineNo		= 2;
 	static const int	statusLineNo	= 4;
+	static const int	alertnessLineNo	= 5;
 	static const int	progressLineNo	= 3;
 
 	static void DisplayText(wstring text, int lineNo, int colour, bool noRewrite = false);

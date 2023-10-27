@@ -239,6 +239,45 @@ void GameMap::SetUpMap()
 	wcout << '\n';
 }
 
+void GameMap::OutputDetectionStr()
+{
+	int				currDetection	= 0;
+	int				detection		= 0;
+	wstring			str;
+	Entity::Colours colour;
+
+	for (int x = 0; x < enemies.size(); x++)
+	{
+		currDetection = enemies[x]->GetDetectionLevel();
+		if (currDetection > detection)
+		{
+			detection = currDetection;
+		}
+	}
+
+	switch (detection)
+	{
+	case 0:
+		str = L"Detection:  [...]";
+		colour = Entity::GREEN;
+		break;
+	case 1:
+		str = L"Detection:  [|..]";
+		colour = Entity::YELLOW;
+		break;
+	case 2:
+		str = L"Detection:  [||.]";
+		colour = Entity::RED;
+		break;
+	case 3:
+		str = L"Detection:  [|||]";
+		colour = Entity::RED;
+		break;
+	}
+
+	Game::DisplayText(str, Game::alertnessLineNo, colour, true);
+}
+
 /// <summary>
 /// Redraws the current map content (all entities) back to the screen after viewing the help menu.
 /// </summary>
@@ -246,13 +285,17 @@ void GameMap::RedrawMap()
 {
 	system("cls");
 
+	wstring detectionStr;
+	Entity::Colours detectionStrColour;
+
 	for (int x = 0; x < entities.size(); x++)
 	{
 		WriteEntity(entities[x]);
 	}
 
-	Game::DisplayText(L"H - Show Help  |  E - Quit", Game::hintLineNo, Entity::GREEN, true);
+	Game::DisplayText(L"H - Show Help  |  E - Quit", Game::hintLineNo, Entity::WHITE, true);
 	Game::DisplayText(L"Gold:  " + to_wstring(pPlayer->GetGold()), Game::goldLineNo, Entity::DARK_YELLOW, true);
+	OutputDetectionStr();
 
 	if (pPlayer->GetKeyObtained() && !pPlayer->GetTreasureObtained())
 	{
@@ -292,6 +335,8 @@ void GameMap::DrawContent()
 	WriteEntity(pTreasure, treasureBg);
 	WriteEntity(pExit, exitBg);
 	WriteEntity(pPlayer, playerBg);
+
+	OutputDetectionStr();
 }
 
 void GameMap::UpdateEnemyAwareness(int currTimeMS)
@@ -345,6 +390,8 @@ void GameMap::RequestPlayerMove(Character::Movement move, int currTimeMS)
 		PlaySoundFX(t->GetTerrainType());
 
 		UpdateEnemyAwareness(currTimeMS);
+
+
 	}
 }
 
@@ -402,6 +449,7 @@ void GameMap::RequestEnemyKO()
 	{
 		Game::DisplayText(L"Player knocked out an enemy!", Game::statusLineNo, Entity::RED);
 		enemies[enemyIndex]->SetActive(false);
+		enemies[enemyIndex]->ClearDetectionLevel();
 		// TODO: Then a timer should elapse in the game Run() scope (not here) for 10-20 seconds before enemy is set active again?
 		// ...
 	}
@@ -470,7 +518,7 @@ bool GameMap::RequestEnemyPickpocket()
 			Game::DisplayText(L"You found the key!", Game::statusLineNo, Entity::PINK);
 
 			int colour = Game::GetColourCode(Entity::DARK_YELLOW, Entity::DARK_BLUE);
-			Game::DisplayText(L"KEY OBTAINED", Game::progressLineNo, colour, true); // TODO: Actual colour here
+			Game::DisplayText(L"KEY OBTAINED", Game::progressLineNo, colour, true);
 		}
 		else if (pPlayer->GetKeyObtained())
 		{
@@ -525,63 +573,12 @@ void GameMap::CalcRandomMove(Entity::Position& newPos, Character::Movement& move
 }
 
 /// <summary>
-/// Prepares randomised moves for each enemy on the map.
+/// Calculates a move with a specific goal (enemy navigating to last known player location).
 /// </summary>
-void GameMap::SetUpEnemyMoves(int currTimeMS)
-{
-	Enemy* currEnemy = NULL;
-
-	Entity::Position currPos;
-	Entity::Position newPos;
-
-	// For if aware of the player
-	Entity::Position targetPos;
-	int xDiff, yDiff;
-
-	Character::Movement move;
-
-	vector<Entity::Position> usedPositions; // Holds NEW enemy positions
-
-	for (int i = 0; i < enemies.size(); i++)
-	{
-		currEnemy = enemies[i];
-
-		currEnemy->ProcessAlertedState(currTimeMS);
-
-		if (currEnemy->IsActive()) // Don't move if not active (knocked out by player)
-		{
-			currPos = currEnemy->GetPosition();
-
-			newPos	= currPos;
-			move	= Character::NOTHING;
-
-			// TODO: If enemy is in alerted state, start moving towards player
-			if (currEnemy->GetAlertLevel() == Enemy::SUSPICIOUS)
-			{
-				targetPos = currEnemy->GetPlayerLastKnownPos();
-
-				CalcSpecificMove(move, newPos, currPos, targetPos);
-			}
-			else
-			{
-				// Get random next move
-				CalcRandomMove(newPos, move);
-			}
-
-			if ((find(usedPositions.begin(), usedPositions.end(), newPos) == usedPositions.end())) // find() points to the last element if not found
-			{
-				usedPositions.push_back(newPos);
-				currEnemy->SetNextPos(newPos, move);
-			}
-			// Enemy doesn't move this turn if their first movement choice is unavailable
-			else
-			{
-				currEnemy->SetNextPos(currPos, Character::NOTHING);
-			}			
-		}
-	}
-}
-
+/// <param name="move">Stores the movement type.</param>
+/// <param name="proposedPos">Stores the proposed coordinates to move to.</param>
+/// <param name="currPos">Enemy's current position.</param>
+/// <param name="targetPos">Enemy's end target position</param>
 void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& proposedPos, Entity::Position currPos, Entity::Position targetPos)
 {
 	int xDiff, yDiff;
@@ -649,6 +646,64 @@ void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& prop
 				proposedPos = currPos;
 				move = Character::NOTHING;
 			}
+		}
+	}
+}
+
+/// <summary>
+/// Prepares randomised moves for each enemy on the map.
+/// </summary>
+/// <param name="currTimeMS">Current elapsed game time</param>
+void GameMap::SetUpEnemyMoves(int currTimeMS)
+{
+	Enemy* currEnemy = NULL;
+
+	Entity::Position currPos;
+	Entity::Position newPos;
+
+	// For if aware of the player
+	Entity::Position targetPos;
+
+	Character::Movement move;
+
+	vector<Entity::Position> usedPositions; // Holds NEW enemy positions
+
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		currEnemy = enemies[i];
+
+		if (currEnemy->IsActive()) // Don't move if not active (knocked out by player)
+		{
+			currPos = currEnemy->GetPosition();
+
+			newPos	= currPos;
+			move	= Character::NOTHING;
+
+			currEnemy->ProcessAlertedState(currTimeMS, pPlayer->GetPosition());
+
+			// TODO: If enemy is in alerted state, start moving towards player
+			if (currEnemy->GetAlertLevel() == Enemy::SUSPICIOUS)
+			{
+				targetPos = currEnemy->GetPlayerLastKnownPos();
+
+				CalcSpecificMove(move, newPos, currPos, targetPos);
+			}
+			else
+			{
+				// Get random next move
+				CalcRandomMove(newPos, move);
+			}
+
+			if ((find(usedPositions.begin(), usedPositions.end(), newPos) == usedPositions.end())) // find() points to the last element if not found
+			{
+				usedPositions.push_back(newPos);
+				currEnemy->SetNextPos(newPos, move);
+			}
+			// Enemy doesn't move this turn if their first movement choice is unavailable
+			else
+			{
+				currEnemy->SetNextPos(currPos, Character::NOTHING);
+			}			
 		}
 	}
 }
@@ -862,8 +917,9 @@ void Game::Run()
 		if (newGame)
 		{
 			pMap->SetUpMap();
-			DisplayText(L"H - Show Help  |  E - Quit", hintLineNo, Entity::GREEN);
+			DisplayText(L"H - Show Help  |  E - Quit", hintLineNo, Entity::WHITE);
 			DisplayText(L"Gold:  0", goldLineNo, Entity::DARK_YELLOW);
+			DisplayText(L"Detection:  [...]", alertnessLineNo, Entity::GREEN);
 		}
 		else
 		{

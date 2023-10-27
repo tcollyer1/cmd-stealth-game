@@ -131,7 +131,7 @@ void Enemy::CheckIfInHearingRange(Entity::Position pos, int timeMS)
 		alertStartTime		= timeMS;
 		playerLastKnownPos	= pos;
 
-		if (++confidence == maxConfidence)
+		if (++detection == maxDetection)
 		{
 			// TODO: Game over...
 			alertLevel = SPOTTED;
@@ -140,12 +140,63 @@ void Enemy::CheckIfInHearingRange(Entity::Position pos, int timeMS)
 	}
 }
 
-void Enemy::ProcessAlertedState(int timeMS)
+void Enemy::ProcessAlertedState(int timeMS, Position playerPosActual)
 {
-	if (timeMS >= alertStartTime + alertTimeDuration && alertLevel == SUSPICIOUS)
+	bool playerFound = false;
+
+
+	if (alertLevel == SUSPICIOUS)
 	{
-		confidence		= 0;
-		alertLevel		= UNAWARE;
-		alertStartTime	= 0;
+		// If standing in front of the player
+		switch (dir)
+		{
+		case NORTH:
+			if (playerPosActual.x == position.x && playerPosActual.y == position.y - 1)
+			{
+				playerFound = true;
+			}
+			break;
+		case SOUTH:
+			if (playerPosActual.x == position.x && playerPosActual.y == position.y + 1)
+			{
+				playerFound = true;
+			}
+			break;
+		case EAST:
+			if (playerPosActual.x == position.x + 1 && playerPosActual.y == position.y)
+			{
+				playerFound = true;
+			}
+			break;
+		case WEST:
+			if (playerPosActual.x == position.x - 1 && playerPosActual.y == position.y)
+			{
+				playerFound = true;
+			}
+			break;
+		}
+
+		if (playerFound)
+		{
+			alertLevel = SPOTTED;
+		}
+
+		if (timeMS >= alertStartTime + alertTimeDuration)
+		{
+			ClearDetectionLevel();
+			alertLevel		= UNAWARE;
+			alertStartTime	= 0;
+
+		}
 	}
+}
+
+int Enemy::GetDetectionLevel()
+{
+	return (detection);
+}
+
+void Enemy::ClearDetectionLevel()
+{
+	detection = 0;
 }
