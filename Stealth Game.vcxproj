@@ -25,6 +25,7 @@
     <ClCompile Include="src\cpp\main.cpp" />
     <ClCompile Include="src\cpp\game.cpp" />
     <ClCompile Include="src\cpp\player.cpp" />
+    <ClCompile Include="src\cpp\wall.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\h\enemy.h" />
@@ -32,6 +33,7 @@
     <ClInclude Include="src\h\env.h" />
     <ClInclude Include="src\h\game.h" />
     <ClInclude Include="src\h\player.h" />
+    <ClInclude Include="src\h\wall.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

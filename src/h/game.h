@@ -9,6 +9,7 @@
 #include "player.h"
 #include "enemy.h"
 #include "env.h"
+#include "wall.h"
 
 using namespace std;
 
@@ -19,6 +20,7 @@ class GameMap
 {
 public:
 	GameMap(int enemies);
+
 	void		SetUpMap();
 	void		DrawContent();
 	bool		GetIfGameOver();
@@ -36,8 +38,14 @@ public:
 	static const int	height	= 20;
 	static const int	width	= 50;
 
+	Entity::Position topLeft;
+	Entity::Position topRight;
+	Entity::Position btmLeft;
+	Entity::Position btmRight;
+
 private:
 	GameMap();
+	void	SetEssentialEntities();
 	void	WriteEntity(Entity* entity, int background = 0);
 	bool	GetIfTraversable(Entity::Position pos, bool updatePlayerTile = false);
 	int		GetTileBackground(Entity::Position pos);
@@ -50,7 +58,10 @@ private:
 
 	void	OutputDetectionStr();
 
-	template<typename T> void AddEntities(int num, vector<T*> &entitiesVector);
+	template<typename T> void	AddEntities(int num, vector<T*> &entitiesVector);
+	template<typename T> T*		AddEntity(T* pEntity, bool optionalFlag = false);
+
+	void	AddRandomWalls(int cornerX, int cornerY);
 
 	int				numEnemies;	// Number of enemies on the map
 
@@ -58,11 +69,12 @@ private:
 	Treasure*		pTreasure;
 	Exit*			pExit;
 
-	vector<Entity*> entities;
-	vector<Tile*>	tiles;
-	vector<Wall*>	walls;
-	vector<Enemy*>	enemies;
-	vector<Gold*>	gold;
+	vector<Entity*>		entities;
+	vector<Tile*>		tiles;
+	vector<Wall*>		walls;
+	vector<WallBlock*>	wallBlocks;
+	vector<Enemy*>		enemies;
+	vector<Gold*>		gold;
 };
 
 /// <summary>

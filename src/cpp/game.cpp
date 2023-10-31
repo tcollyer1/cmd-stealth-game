@@ -6,32 +6,84 @@
 
 #include "..\h\game.h"
 #include "..\h\env.h"
+#include "..\h\wall.h"
 
 #pragma comment(lib, "Winmm.lib") // For sound effects
 
 static HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE); // Global for standard reuse
 
+void GameMap::SetEssentialEntities()
+{
+	/* Generate random in-game walls,
+	 * per quarter of the map. Either 0 walls, 1x large, or up to 2x small
+	 */
+	AddRandomWalls(topLeft.x, topLeft.y);
+	AddRandomWalls(topRight.x, topRight.y);
+	AddRandomWalls(btmLeft.x, btmLeft.y);
+	AddRandomWalls(btmRight.x, btmRight.y);
+
+	pPlayer		= AddEntity<Player>(pPlayer);
+	pTreasure	= AddEntity<Treasure>(pTreasure);
+	pExit		= AddEntity<Exit>(pExit);
+
+	Enemy* pE	= NULL;
+	pE			= AddEntity<Enemy>(pE, true);
+	this->enemies.push_back(pE);
+}
+
 GameMap::GameMap(int enemies)
 {
+	topLeft.x = 1;
+	topLeft.y = 1;
+
+	topRight.x = (width / 2) + 1;
+	topRight.y = 1;
+
+	btmLeft.x = 1;
+	btmLeft.y = (height / 2) + 1;
+
+	btmRight.x = (width / 2) + 1;
+	btmRight.y = (height / 2) + 1;
+
 	numEnemies	= enemies;
 
-	// Temp - will generate these
-	pPlayer		= new Player(2, 19);
-	pTreasure	= new Treasure(10, 15);
-	pExit		= new Exit(20, 4);
-	Enemy* e	= new Enemy(3, 4, true); // Must have at least one enemy, which will have the key
-
-	// Add player, treasure and exit to vector of all map entities
-	entities.push_back(pPlayer);
-	entities.push_back(pTreasure);
-	entities.push_back(pExit);
-
-	this->enemies.push_back(e);
-	entities.push_back(e);
+	SetEssentialEntities();
 
 	// Populate map with enemies and gold
 	AddEntities<Enemy>(numEnemies - 1, this->enemies); // -1 for the one enemy already on the map
 	AddEntities<Gold>(5, gold);
+}
+
+template<typename T>
+T* GameMap::AddEntity(T* pEntity, bool optionalFlag)
+{
+	bool				positionAdded;
+	Entity::Position	tempPos;
+	int					y, x;
+
+	positionAdded = false;
+
+	while (!positionAdded)
+	{
+		y = (rand() % height) + 1;
+		x = (rand() % width) + 1;
+
+		tempPos.x = x;
+		tempPos.y = y;
+
+		if (find_if(entities.begin(), entities.end(), [&tempPos](Entity* ent) {return ent->GetPosition() == tempPos; }) == entities.end()) // find() points to the last element if not found
+		{
+			pEntity = new T(x, y, optionalFlag);
+	
+			entities.push_back(pEntity);
+
+			positionAdded = true;
+		}
+
+		// Otherwise continue finding a position
+	}
+
+	return (pEntity);
 }
 
 /// <summary>
@@ -49,7 +101,7 @@ void GameMap::AddEntities(int num, vector<T*> &entitiesVector)
 
 	vector<Entity::Position> usedPositions;
 
-	// Add all positions currently in entities vector to usedPositions so they cannot be reused for enemies
+	// Add all positions currently in entities vector to usedPositions so they cannot be reused
 	for (int i = 0; i < entities.size(); i++)
 	{
 		usedPositions.push_back(entities[i]->GetPosition());
@@ -126,11 +178,11 @@ bool GameMap::GetIfGameOver()
 	}
 	else
 	{
-		// TODO: Else if an enemy is in full alert, game is over
 		for (int i = 0; i < enemies.size(); i++)
 		{
 			if (enemies[i]->GetAlertLevel() == Enemy::SPOTTED)
 			{
+				Game::DisplayText(L"GAME OVER...", Game::statusLineNo, Entity::DARK_RED);
 				over = true;
 			}
 		}
@@ -167,6 +219,60 @@ void GameMap::PlaySoundFX(Tile::TerrainType t)
 	}
 }
 
+void GameMap::AddRandomWalls(int cornerX, int cornerY)
+{
+	WallBlock::Size			wallSize;
+	WallBlock::Orientation	wallOri;
+	int						startX, startY;
+	WallBlock*				wallB			= NULL;
+
+	int wallChance = rand() % 2;
+
+	if (wallChance)
+	{
+		wallSize = WallBlock::Size(rand() % 2);
+
+		if (wallSize == WallBlock::LARGE)
+		{
+			// Generate one large wall
+			wallOri = WallBlock::Orientation(rand() % 2);
+
+			if (wallOri == WallBlock::HORIZONTAL)
+			{
+				// Generate position for large horizontal wall; + 2 so wall is not placed directly next to another
+				startY = rand() % ((height / 2) - 2) + 2;
+				startX = cornerX;				
+			}
+			else
+			{
+				// Generate position for vertical wall
+				startY = cornerY;
+				startX = rand() % ((width / 2) - 2) + 2;
+			}
+
+			wallB = new WallBlock(startX, startY, wallOri, wallSize);
+
+			for (int i = 0; i < wallB->GetLength(); i++)
+			{
+				Wall* pWall = wallB->GetWallBlock(i);
+
+				walls.push_back(pWall);
+				entities.push_back(pWall);
+			}
+
+			// Push wall block to wallBlocks vector
+			wallBlocks.push_back(wallB);
+		}
+		else
+		{
+			// TODO: Generate one or more small walls
+			int numWalls = rand() % 3 + 1;
+
+
+		}
+	}
+}
+
 /// <summary>
 /// Prepares the basic map including border walls and randomised floor tiles.
 /// </summary>
@@ -178,6 +284,8 @@ void GameMap::SetUpMap()
 	Tile::TerrainType	terrain;
 
 	system("cls");
+
+	/* Set up map border walls */
 	for (i = 0; i < width + 2; i++)	// +2 for left/right map boundary
 	{
 		Wall* wall = new Wall(i, 0);
@@ -191,7 +299,7 @@ void GameMap::SetUpMap()
 
 	for (y = 1; y <= height; y++)
 	{
-		for (x = 0; x < width + 2; x++)
+		for (x = 0; x <= width + 1; x++)
 		{
 			if ((x == 0) || (x == width + 1))
 			{
@@ -209,7 +317,7 @@ void GameMap::SetUpMap()
 					light	= Tile::LightLevel(rand() % 3);
 					terrain = Tile::TerrainType(rand() % 2);
 
-					Tile* tile = new Tile(x, y, terrain, light); // To be generated SEMI-randomly
+					Tile* tile = new Tile(x, y, terrain, light); // Generate a random tile
 
 					WriteEntity(tile);
 					tiles.push_back(tile);
@@ -244,6 +352,14 @@ void GameMap::SetUpMap()
 		entities.push_back(wall);
 	}
 	wcout << '\n';
+
+	for (int i = 0; i < wallBlocks.size(); i++)
+	{
+		for (int w = 0; w < wallBlocks[i]->GetLength(); w++)
+		{
+			WriteEntity(wallBlocks[i]->GetWallBlock(w));
+		}
+	}
 }
 
 void GameMap::OutputDetectionStr()
@@ -251,7 +367,7 @@ void GameMap::OutputDetectionStr()
 	int				currDetection	= 0;
 	int				detection		= 0;
 	wstring			str;
-	Entity::Colours colour;
+	Entity::Colours colour = Entity::WHITE;
 
 	for (int x = 0; x < enemies.size(); x++)
 	{
@@ -326,6 +442,15 @@ void GameMap::RedrawMap()
 		int colour = Game::GetColourCode(Entity::DARK_YELLOW, Entity::DARK_BLUE);
 		Game::DisplayText(L"TREASURE OBTAINED", Game::progressLineNo, colour, true);
 	}
+
+	// Redraw wall blocks to be on top
+	for (int i = 0; i < wallBlocks.size(); i++)
+	{
+		for (int w = 0; w < wallBlocks[i]->GetLength(); w++)
+		{
+			WriteEntity(wallBlocks[i]->GetWallBlock(w));
+		}
+	}
 }
 
 /// <summary>
@@ -377,7 +502,7 @@ void GameMap::UpdateEnemyAwareness(int currTimeMS)
 			currEnemy->CheckIfInHearingRange(pPlayer->GetPosition(), currTimeMS);
 		}
 
-		currEnemy->CheckIfInLOS(pPlayer->GetPosition(), currTimeMS, lightLevel);
+		currEnemy->CheckIfInLOS(pPlayer->GetPosition(), currTimeMS, lightLevel); // TODO: Currently enemies can see through walls
 	}
 }
 
@@ -507,6 +632,8 @@ bool GameMap::RequestTreasureUnlock()
 				Game::DisplayText(L"TREASURE OBTAINED", Game::progressLineNo, 22, true);
 				pPlayer->IncrementGold(100);	// Treasure will be worth 100 gold. 
 												// TODO: Make fixed value?
+
+				Game::DisplayText(L"Gold:  " + to_wstring(pPlayer->GetGold()), Game::goldLineNo, Entity::DARK_YELLOW, true);
 			}
 			else
 			{
@@ -636,7 +763,7 @@ void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& prop
 	}
 
 	// - If the y difference is smaller than the x distance, try to move up/down
-	// - If the player was unable to move left/right, try to move up/down
+	// - If unable to move left/right, try to move up/down
 	if ((yDiff < xDiff || ((yDiff == 0 && xDiff != 0) || yDiff != 0)) && !hasMove)
 	{
 		// Try to move up/down
@@ -700,7 +827,6 @@ void GameMap::SetUpEnemyMoves(int currTimeMS)
 
 			currEnemy->ProcessAlertedState(currTimeMS, pPlayer->GetPosition());
 
-			// TODO: If enemy is in alerted state, start moving towards player
 			if (currEnemy->GetAlertLevel() == Enemy::SUSPICIOUS)
 			{
 				targetPos = currEnemy->GetPlayerLastKnownPos();
@@ -896,9 +1022,7 @@ Game::Game()
 	cursorInfo.bVisible = false;
 	SetConsoleCursorInfo(handle, &cursorInfo);
 
-	GameMap* map = new GameMap(3);
-
-	pMap = map;
+	pMap	= NULL;
 
 	running = true;
 }
@@ -935,6 +1059,7 @@ void Game::Run()
 	{
 		if (newGame)
 		{
+			pMap = new GameMap(3);
 			pMap->SetUpMap();
 			DisplayText(L"H - Show Help  |  E - Quit", hintLineNo, Entity::WHITE);
 			DisplayText(L"Gold:  0", goldLineNo, Entity::DARK_YELLOW);
@@ -962,15 +1087,15 @@ void Game::Run()
 		}
 		else
 		{
-			if ((iter % 50 == 0) && (iter % 100 != 0))
+			if ((iter % 30 == 0) && (iter % 60 != 0))
 			{
 				pMap->UpdateEnemyAwareness(timeMS);
-				// Every 50 game cycles, prepare enemies' next moves and rotate their position accordingly
+				// Every 30 game cycles, prepare enemies' next moves and rotate their position accordingly (was every 50)
 				pMap->SetUpEnemyMoves(timeMS);
 			}
-			else if ((iter % 100 == 0))
+			else if ((iter % 60 == 0))
 			{
-				// Every other 50 game cycles, action next enemy moves
+				// Every other 30 game cycles, action next enemy moves
 				pMap->MoveEnemies();
 			}
 

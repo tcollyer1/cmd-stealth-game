@@ -133,10 +133,8 @@ void Enemy::CheckIfInHearingRange(Entity::Position pos, int timeMS)
 
 		if (++detection == maxDetection)
 		{
-			// TODO: Game over...
 			alertLevel = SPOTTED;
 		}
-
 	}
 }
 
@@ -248,51 +246,47 @@ void Enemy::ProcessAlertedState(int timeMS, Position playerPosActual)
 {
 	bool playerFound = false;
 
-
-	if (alertLevel == SUSPICIOUS)
+	// If standing in front of the player
+	switch (dir)
 	{
-		// If standing in front of the player
-		switch (dir)
+	case NORTH:
+		if (playerPosActual.x == position.x && playerPosActual.y == position.y - 1)
 		{
-		case NORTH:
-			if (playerPosActual.x == position.x && playerPosActual.y == position.y - 1)
-			{
-				playerFound = true;
-			}
-			break;
-		case SOUTH:
-			if (playerPosActual.x == position.x && playerPosActual.y == position.y + 1)
-			{
-				playerFound = true;
-			}
-			break;
-		case EAST:
-			if (playerPosActual.x == position.x + 1 && playerPosActual.y == position.y)
-			{
-				playerFound = true;
-			}
-			break;
-		case WEST:
-			if (playerPosActual.x == position.x - 1 && playerPosActual.y == position.y)
-			{
-				playerFound = true;
-			}
-			break;
+			playerFound = true;
 		}
-
-		if (playerFound)
+		break;
+	case SOUTH:
+		if (playerPosActual.x == position.x && playerPosActual.y == position.y + 1)
 		{
-			detection	= maxDetection;
-			alertLevel	= SPOTTED;
+			playerFound = true;
 		}
-
-		if (timeMS >= alertStartTime + alertTimeDuration)
+		break;
+	case EAST:
+		if (playerPosActual.x == position.x + 1 && playerPosActual.y == position.y)
 		{
-			ClearDetectionLevel();
-			alertLevel		= UNAWARE;
-			alertStartTime	= 0;
-
+			playerFound = true;
 		}
+		break;
+	case WEST:
+		if (playerPosActual.x == position.x - 1 && playerPosActual.y == position.y)
+		{
+			playerFound = true;
+		}
+		break;
+	}
+
+	if (playerFound)
+	{
+		detection	= maxDetection;
+		alertLevel	= SPOTTED;
+	}
+
+	if (timeMS >= alertStartTime + alertTimeDuration && alertLevel == SUSPICIOUS)
+	{
+		ClearDetectionLevel();
+		alertLevel		= UNAWARE;
+		alertStartTime	= 0;
+
 	}
 }
 

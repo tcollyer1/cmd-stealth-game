@@ -1,4 +1,4 @@
-// env.h - classes for static environment object, such as walls, floor, treasure etc.
+// env.h - classes for environment objects, such as floor, treasure, exit
 
 #ifndef ENV_H
 #define ENV_H
@@ -30,7 +30,7 @@ private:
 class Treasure : public Entity
 {
 public:
-	Treasure(int x, int y) : Entity(x, y)
+	Treasure(int x, int y, ...) : Entity(x, y)
 	{
 		opened = false;
 		passable = false;
@@ -49,7 +49,7 @@ private:
 class Exit : public Entity
 {
 public:
-	Exit(int x, int y) : Entity(x, y)
+	Exit(int x, int y, ...) : Entity(x, y)
 	{
 		triggered			= false;
 		passable			= true;
@@ -60,21 +60,6 @@ public:
 
 private:
 	bool triggered;
-};
-
-/// <summary>
-/// Defines walls (map boundaries).
-/// </summary>
-class Wall : public Entity
-{
-public:
-	Wall(int x, int y) : Entity(x, y)
-	{
-		passable			= false;
-
-		colour.foreground	= WHITE;
-		colour.background	= WHITE;
-	}
 };
 
 /// <summary>
@@ -93,9 +78,7 @@ public:
 		passable = true;
 
 		DetermineSymbol(terrain, lightLevel);		
-	}
-
-	
+	}	
 
 	TerrainType GetTerrainType();
 	LightLevel	GetLightLevel();
