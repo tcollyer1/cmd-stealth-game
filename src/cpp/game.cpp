@@ -213,7 +213,7 @@ void GameMap::PlaySoundFX(Tile::TerrainType t)
 		break;
 	}
 
-	if (L"" != fileName)
+	if (Game::GetIfFileExists(fileName))
 	{
 		PlaySound(fileName.c_str(), NULL, SND_FILENAME | SND_ASYNC);
 	}
@@ -1173,12 +1173,6 @@ void Game::ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit)
 	}
 	else if (option == L"2")
 	{
-		isNewGame	= false;
-		selected	= true;
-		exit		= false;
-	}
-	else if (option == L"3")
-	{
 		selected	= true;
 		exit		= true;
 	}
@@ -1248,7 +1242,7 @@ void Game::DisplayText(wstring text, int lineNo, int colour, bool noRewrite)
 /// <returns>Whether new game has been selected or not</returns>
 bool Game::StartMenu()
 {
-	wifstream	startupTxt("./media/startup.txt"); // Wrap this in a try-catch in case file is deleted
+	
 	wstring		currLine;
 	wstring		txt;
 
@@ -1256,14 +1250,26 @@ bool Game::StartMenu()
 	bool		isNewGame	= false;
 	bool		quit		= false;
 	bool		startNew	= false;	// Return value
-	bool		worked		= false;
+	bool		worked		= false;	
 
-	while (getline(startupTxt, currLine))
+	// Backup title in case banner file has been deleted/moved
+	if (!Game::GetIfFileExists(L"./media/banner.txt"))
 	{
-		txt += currLine + L"\n";
+		txt = L"-- CMD Stealth --";
+	}
+	else
+	{
+		wifstream startupTxt("./media/banner.txt");
+
+		while (getline(startupTxt, currLine))
+		{
+			txt += currLine + L"\n";
+		}
+
+		startupTxt.close();
 	}
 
-	startupTxt.close();
+	txt += L"\n\n  1.\tNew Game\n  2.\tQuit\n";
 
 	while (!selected)
 	{
@@ -1272,15 +1278,15 @@ bool Game::StartMenu()
 			system("cls");
 			wcout << txt;
 
-			CONSOLE_SCREEN_BUFFER_INFO cbsi;
-			worked = GetConsoleScreenBufferInfo(handle, &cbsi);
+			CONSOLE_SCREEN_BUFFER_INFO csbi;
+			worked = GetConsoleScreenBufferInfo(handle, &csbi);
 
 			if (!worked)
 			{
 				throw (worked);
 			}
 
-			COORD coords = cbsi.dwCursorPosition;
+			COORD coords = csbi.dwCursorPosition;
 
 			wcout << "\n\nEnter a menu option.\n> ";
 
@@ -1306,19 +1312,34 @@ bool Game::StartMenu()
 	return (startNew);
 }
 
+/// <summary>
+/// Displays a help screen detailing how the game works, symbol meanings and controls.
+/// </summary>
 void Game::ShowHelp()
 {
 	system("cls");
-	wifstream	helpTxt("./media/help.txt"); // Wrap this in a try-catch in case file is deleted
+
 	wstring		txt;
+	wstring		currLine;
 	bool		close = false;
 
-	while (getline(helpTxt, txt))
+	if (!Game::GetIfFileExists(L"./media/help.txt"))
 	{
-		wcout << txt << "\n";
+		wcout << "ERROR: help.txt has been moved, renamed or deleted.\n";
 	}
+	else
+	{
+		wifstream helpTxt("./media/help.txt");
 
-	helpTxt.close();
+		while (getline(helpTxt, currLine))
+		{
+			txt += currLine + L"\n";
+		}
+
+		helpTxt.close();
+
+		wcout << txt;
+	}	
 
 	wcout << "\n\n> Press the ENTER key to continue...";
 
@@ -1336,11 +1357,26 @@ void Game::ShowHelp()
 	pMap->RedrawMap();
 }
 
+/// <summary>
+/// Ends the current game and destroys all of the entities on the map
+/// </summary>
 void Game::EndGame()
 {
 	// Delete map, entities etc.
-	// ...
+	// pMap->DestroyEverything();
 	running = false;
 	system("cls");
 	wcout << "Thanks for playing!\n";
+}
+
+/// <summary>
+/// Gets if a specified file exists.
+/// </summary>
+/// <param name="fName">File name</param>
+/// <returns>True if the file exists</returns>
+bool Game::GetIfFileExists(wstring fName)
+{
+	wifstream file(fName);
+
+	return (file.good());
 }

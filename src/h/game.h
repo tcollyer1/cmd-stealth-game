@@ -96,6 +96,8 @@ public:
 
 	static int	GetColourCode(int foreground, int background);
 
+	static bool GetIfFileExists(wstring fName);
+
 private:
 	GameMap* pMap;
 
