@@ -12,6 +12,23 @@
 
 static HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE); // Global for standard reuse
 
+void GameMap::DestroyEverything()
+{
+	int entitiesSize = entities.size();
+
+	for (int i = 0; i < entitiesSize; i++)
+	{
+		entities[i]->Destroy();
+	}
+
+	tiles.clear();
+	enemies.clear();
+	walls.clear();
+	gold.clear();
+	wallBlocks.clear();
+	entities.clear();
+}
+
 void GameMap::SetEssentialEntities()
 {
 	/* Generate random in-game walls,
@@ -1315,8 +1332,6 @@ Game::Game()
 	SetConsoleCursorInfo(handle, &cursorInfo);
 
 	pMap	= NULL;
-
-	running = true;
 }
 
 /// <summary>
@@ -1345,56 +1360,67 @@ void Game::Run()
 	int timeMS	= 0;
 	int iter	= 0;
 
-	bool newGame = StartMenu();	
+	gameOpen = true;
 
-	if (running) // If "Quit" not selected at the start menu
+	while (gameOpen)
 	{
-		if (newGame)
+		running = true;
+		timeMS	= 0;
+		iter	= 0;
+
+		bool newGame = StartMenu();
+
+		if (running) // If "Quit" not selected at the start menu
 		{
-			pMap = new GameMap(3);
-			pMap->SetUpMap();
-			DisplayText(L"H - Show Help  |  E - Quit", hintLineNo, Entity::WHITE);
-			DisplayText(L"Gold:  0", goldLineNo, Entity::DARK_YELLOW);
-			DisplayText(L"Detection:  [.....]", alertnessLineNo, Entity::GREEN);
+			if (newGame)
+			{
+				pMap = new GameMap(3);
+				pMap->SetUpMap();
+				DisplayText(L"H - Show Help  |  E - Quit", hintLineNo, Entity::WHITE);
+				DisplayText(L"Gold:  0", goldLineNo, Entity::DARK_YELLOW, true);
+				DisplayText(L"Detection:  [.....]", alertnessLineNo, Entity::GREEN);
+			}
+			else
+			{
+				// TODO: load existing game - exit loop for now
+				running = false;
+			}
+
 		}
-		else
+
+		while (running)
 		{
-			// TODO: load existing game - exit loop for now
-			running = false;
+			iter++;
+			UpdateMap();
+			ProcessGameInput(timeMS);
+
+			// Process if player is at exit here
+			if (pMap->GetIfGameOver())
+			{
+				Sleep(1000);
+				GameOver();
+			}
+			else
+			{
+				if ((iter % 30 == 0) && (iter % 60 != 0))
+				{
+					pMap->UpdateEnemyAwareness(timeMS);
+					// Every 30 game cycles, prepare enemies' next moves and rotate their position accordingly (was every 50)
+					pMap->SetUpEnemyMoves(timeMS);
+				}
+				else if ((iter % 60 == 0))
+				{
+					// Every other 30 game cycles, action next enemy moves
+					pMap->MoveEnemies();
+				}
+
+				Sleep(10);		// 10ms delay between map redraws
+				timeMS += 10;	// Increase timer by +10ms
+			}
 		}
-		
 	}
 
-	while (running)
-	{
-		iter++;
-		UpdateMap();
-		ProcessGameInput(timeMS);
-
-		// Process if player is at exit here
-		if (pMap->GetIfGameOver())
-		{
-			Sleep(1000);
-			EndGame();
-		}
-		else
-		{
-			if ((iter % 30 == 0) && (iter % 60 != 0))
-			{
-				pMap->UpdateEnemyAwareness(timeMS);
-				// Every 30 game cycles, prepare enemies' next moves and rotate their position accordingly (was every 50)
-				pMap->SetUpEnemyMoves(timeMS);
-			}
-			else if ((iter % 60 == 0))
-			{
-				// Every other 30 game cycles, action next enemy moves
-				pMap->MoveEnemies();
-			}
-
-			Sleep(10);		// 10ms delay between map redraws
-			timeMS += 10;	// Increase timer by +10ms
-		}
-	}	
+	
 }
 
 /// <summary>
@@ -1421,7 +1447,9 @@ void Game::ProcessGameInput(int currTimeMS)
 			pMap->RequestPlayerMove(Character::RIGHT, currTimeMS);
 			break;
 		case 'e':
-			EndGame();
+			pMap->DestroyEverything();
+			running		= false;
+			gameOpen	= false;
 			break;
 		case 'h':
 			ShowHelp();
@@ -1601,7 +1629,9 @@ bool Game::StartMenu()
 
 	if (quit)
 	{
-		EndGame();
+		pMap->DestroyEverything();
+		running		= false;
+		gameOpen	= false;
 	}
 	else
 	{
@@ -1656,16 +1686,44 @@ void Game::ShowHelp()
 	pMap->RedrawMap();
 }
 
-/// <summary>
-/// Ends the current game and destroys all of the entities on the map
-/// </summary>
-void Game::EndGame()
+void Game::GameOver()
 {
+	bool selected = false;
+
 	// TODO: Delete map, entities etc.
-	// pMap->DestroyEverything();
-	running = false;
-	system("cls");
-	wcout << "Thanks for playing!\n";
+	pMap->DestroyEverything();
+
+	wstring userInput;
+
+	while (!selected)
+	{
+		system("cls");
+		wcout << "Thanks for playing!\nTry again? (Y/N)\n\n> ";
+		wcin >> userInput;
+
+		transform(userInput.begin(), userInput.end(), userInput.begin(), ::tolower);
+
+		if (userInput == L"y")
+		{
+			running		= false;
+			selected	= true;
+		}
+		else if (userInput == L"n")
+		{
+			running		= false;
+			gameOpen	= false;
+
+			selected	= true;
+		}
+		else
+		{
+			selected = false;
+			wcout << "\n[!] Invalid option";
+			cin.clear();
+			cin.ignore(10000, '\n');
+			Sleep(1000);
+		}
+	}	
 }
 
 /// <summary>

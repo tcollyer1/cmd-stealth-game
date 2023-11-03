@@ -35,6 +35,8 @@ public:
 
 	void		UpdateEnemyAwareness(int currTimeMS);
 
+	void		DestroyEverything();
+
 	static const int	height	= 20;
 	static const int	width	= 50;
 
@@ -111,10 +113,11 @@ private:
 	void UpdateMap();														// Set up map etc., call in Run()
 	void ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit);	// Process start screen user input
 	void ProcessGameInput(int currTimeMS);									// Process user commands
-	void EndGame();
+	void GameOver();
 	void ShowHelp();
 
 	bool	running;
+	bool	gameOpen;
 };
 
 #endif
