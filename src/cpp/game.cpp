@@ -1084,6 +1084,7 @@ void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& prop
 			move = Character::NOTHING;
 
 			// Reset proposedPos and get a random move instead
+			// TODO: cannot navigate walls
 			CalcRandomMove(proposedPos, move);
 
 			if (!GetIfTraversable(proposedPos))
@@ -1382,7 +1383,6 @@ void Game::Run()
 			}
 			else
 			{
-				// TODO: load existing game - exit loop for now
 				running = false;
 			}
 
@@ -1498,6 +1498,7 @@ void Game::ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit)
 	}
 	else if (option == L"2")
 	{
+		isNewGame	= false;
 		selected	= true;
 		exit		= true;
 	}
@@ -1695,7 +1696,6 @@ void Game::GameOver()
 {
 	bool selected = false;
 
-	// TODO: Delete map, entities etc.
 	pMap->DestroyEverything();
 
 	wstring userInput;
