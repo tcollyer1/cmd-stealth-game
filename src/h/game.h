@@ -54,6 +54,9 @@ private:
 
 	bool	PlayerIsBehindEnemy(int& enemyIdx);
 
+	bool	PlayerIsNextToTreasure();
+	void	UpdateTreasureDisplay();
+
 	void	PlaySoundFX(Tile::TerrainType t);
 
 	void	OutputDetectionStr();
@@ -62,6 +65,8 @@ private:
 	template<typename T> T*		AddEntity(T* pEntity, bool optionalFlag = false);
 
 	void	AddRandomWalls(int cornerX, int cornerY);
+	bool	GetIfWallHere(WallBlock wb);
+	bool	IsPlayerBehindWall(Entity::Position currPos, Enemy::Direction dir);
 
 	int				numEnemies;	// Number of enemies on the map
 
@@ -78,7 +83,7 @@ private:
 };
 
 /// <summary>
-/// Main Game class. Responsible for game loop & setting up/ending game
+/// Main Game class. Responsible for main game loop, setting up/ending the game and generic game properties
 /// </summary>
 class Game
 {
@@ -91,6 +96,7 @@ public:
 	static const int	statusLineNo	= 4;
 	static const int	alertnessLineNo	= 5;
 	static const int	progressLineNo	= 3;
+	static const int	treasureReward	= 100;
 
 	static void DisplayText(wstring text, int lineNo, int colour, bool noRewrite = false);
 
@@ -104,7 +110,7 @@ private:
 	bool StartMenu();														// Initial screen on startup
 	void UpdateMap();														// Set up map etc., call in Run()
 	void ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit);	// Process start screen user input
-	void ProcessGameInput(int currTimeMS);												// Process user commands
+	void ProcessGameInput(int currTimeMS);									// Process user commands
 	void EndGame();
 	void ShowHelp();
 

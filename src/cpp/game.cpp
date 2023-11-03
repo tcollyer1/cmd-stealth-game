@@ -36,7 +36,7 @@ GameMap::GameMap(int enemies)
 	topLeft.x = 1;
 	topLeft.y = 1;
 
-	topRight.x = (width / 2) + 1;
+	topRight.x = (width / 2) + 1; // Offset by 1
 	topRight.y = 1;
 
 	btmLeft.x = 1;
@@ -193,9 +193,9 @@ bool GameMap::GetIfGameOver()
 }
 
 /// <summary>
-/// Plays sound effect each time a player walks on a hard/soft tile.
+/// This function is called to play sound effect each time a player walks on a hard/soft tile.
 /// </summary>
-/// <param name="t">Tile type player is walking on</param>
+/// <param name="t">Tile terrain type player is walking on (hard/soft)</param>
 void GameMap::PlaySoundFX(Tile::TerrainType t)
 {
 	int		soundNo		= rand() % 3 + 1;
@@ -219,39 +219,206 @@ void GameMap::PlaySoundFX(Tile::TerrainType t)
 	}
 }
 
+/// <summary>
+/// Checks if a wall block is already here/directly next to the proposed wall block.
+/// </summary>
+/// <param name="wb">Proposed WallBlock object to check</param>
+/// <returns>True if a wall block is too close/would directly collide</returns>
+bool GameMap::GetIfWallHere(WallBlock wb)
+{
+	bool	isWall		= false;
+	int		i			= 0;
+	int		j			= 0;
+	int		k			= 0;
+
+	int		leftPos		= 0;
+	int		rightPos	= 0;
+
+	Entity::Position currPos;
+
+	if (wb.GetOrientation() == WallBlock::HORIZONTAL)
+	{
+		leftPos		= wb.GetPosition().y - 1;
+		rightPos	= wb.GetPosition().y + 1;
+	}
+	else
+	{
+		leftPos		= wb.GetPosition().x - 1;
+		rightPos	= wb.GetPosition().x + 1;
+	}
+
+	while (i < wallBlocks.size() && !isWall)
+	{
+		// If this wall block has the same orientation, check it
+		if (wallBlocks[i]->GetOrientation() == wb.GetOrientation())
+		{
+			while (j < wb.GetLength() && !isWall)
+			{
+				// Check none of the proposed blocks in this wall block surround an existing wall
+				if ((wallBlocks[i]->GetIfAdjacent(wb.GetWallBlock(j)->GetPosition()))
+					|| (wallBlocks[i]->GetIfAtEdge(wb.GetWallBlock(j)->GetPosition())))
+				{
+					isWall = true;
+				}
+				else
+				{
+					while (k < wallBlocks[i]->GetLength() && !isWall)
+					{
+						// Check none of the wall blocks from either wall intersect with each other
+						// TODO: Some walls currently generate right next to others...
+						if ((wb.GetWallBlock(j)->GetPosition() == wallBlocks[i]->GetWallBlock(k)->GetPosition()))
+						{
+							isWall = true;
+						}
+
+						k++;
+					}
+				}				
+
+				j++;
+			}
+		}
+
+		i++;
+	}
+
+	return (isWall);
+}
+
+/// <summary>
+/// Generates a random combination of wall structures on one portion of the map.
+/// </summary>
+/// <param name="cornerX">The top left X position of the partition of map space to generate walls for</param>
+/// <param name="cornerY">The top left Y position of the patition of map space to generate walls for</param>
 void GameMap::AddRandomWalls(int cornerX, int cornerY)
 {
 	WallBlock::Size			wallSize;
 	WallBlock::Orientation	wallOri;
-	int						startX, startY;
-	WallBlock*				wallB			= NULL;
+	int						startX, startY, maxX, maxY;
+	WallBlock*				wallB = NULL;
 
-	int wallChance = rand() % 2;
+	bool	largeWallPlaced		= false;
+	bool	smallWallPlaced		= false;
 
-	if (wallChance)
+	Entity::Position tempPos;
+
+	wallSize = WallBlock::Size(rand() % 2);
+
+	if (wallSize == WallBlock::LARGE)
 	{
-		wallSize = WallBlock::Size(rand() % 2);
+		// Generate one large wall
+		wallOri = WallBlock::Orientation(rand() % 2);
 
-		if (wallSize == WallBlock::LARGE)
+		if (wallOri == WallBlock::HORIZONTAL)
 		{
-			// Generate one large wall
-			wallOri = WallBlock::Orientation(rand() % 2);
+			// Generate position for large horizontal wall; offset by the wallGap (2) so wall is not placed directly next to another wall
+			maxY	= ((cornerY - 1) + (height / 2)) - WallBlock::wallGap;
+			startY	= rand() % (maxY - (cornerY + WallBlock::wallGap)) + (cornerY + WallBlock::wallGap);
 
-			if (wallOri == WallBlock::HORIZONTAL)
+			// If not the left side of the map (horizontal walls are drawn left -> right)
+			if (cornerX != 1)
 			{
-				// Generate position for large horizontal wall; + 2 so wall is not placed directly next to another
-				startY = rand() % ((height / 2) - 2) + 2;
-				startX = cornerX;				
+				// Align to right side instead
+				startX = (width + 1) - WallBlock::GetWallBlockSize(wallSize, wallOri);	// +1 to include coordinate it's currently on -
+																						// e.g. 50 - 3 gives 47 but placing a block at x pos
+																						// 17 places walls at x = 47, 48 & 49 but not 50
 			}
 			else
 			{
-				// Generate position for vertical wall
-				startY = cornerY;
-				startX = rand() % ((width / 2) - 2) + 2;
+				// Wall already left-aligned
+				startX = cornerX;
+			}				
+		}
+		else
+		{
+			// Generate position for vertical wall
+			// If not the top side of the map (vertical walls are drawn top -> bottom)
+			if (cornerY != 1)
+			{
+				startY = (height + 1) - WallBlock::GetWallBlockSize(wallSize, wallOri);
 			}
+			else
+			{
+				startY = cornerY;
+			}
+				
+			maxX	= ((cornerX - 1) + (width / 2)) - WallBlock::wallGap;
+			startX	= rand() % (maxX - (cornerX + WallBlock::wallGap)) + (cornerX + WallBlock::wallGap);
+		}
+
+		wallB = new WallBlock(startX, startY, wallOri, wallSize);
+
+		for (int i = 0; i < wallB->GetLength(); i++)
+		{
+			Wall* pWall = wallB->GetWallBlock(i);
+
+			walls.push_back(pWall);
+			entities.push_back(pWall);
+		}
+
+		// Push wall block to wallBlocks vector
+		wallBlocks.push_back(wallB);
+
+		largeWallPlaced = true;
+	}
+
+	int numWalls = 0;
+
+	if (largeWallPlaced)
+	{
+		// If a large wall has been placed, place up to 2 additional small ones
+		numWalls = rand() % 1 + 1;
+	}
+	else
+	{
+		// Otherwise place up to 4 small walls
+		numWalls = rand() % 3 + 1;
+	}	
+
+	for (int i = 0; i < numWalls; i++)
+	{
+		wallSize		= WallBlock::SMALL;
+		startX			= 0;
+		startY			= 0;
+		smallWallPlaced = false;
+		wallB			= NULL;
+
+		wallOri = WallBlock::Orientation(rand() % 2);
+			
+		// Same process for small horizontal & vertical walls
+		while (!smallWallPlaced)
+		{
+			maxY = ((cornerY - 1)  + (height / 2) - WallBlock::wallGap);
+			maxX = ((cornerX - 1) + (width / 2) - WallBlock::wallGap);
+
+			// Decrease length of block off of available space to place wall
+			if (wallOri == WallBlock::HORIZONTAL)
+			{
+				maxX = (maxX + 1) - WallBlock::GetWallBlockSize(wallSize, wallOri);
+			}
+			else
+			{
+				maxY = (maxY + 1) - WallBlock::GetWallBlockSize(wallSize, wallOri);
+			}
+
+			startY = rand() % (maxY - (cornerY + WallBlock::wallGap)) + (cornerY + WallBlock::wallGap);
+			startX = rand() % (maxX - (cornerX + WallBlock::wallGap)) + (cornerX + WallBlock::wallGap);
+
+			tempPos.x = startX;
+			tempPos.y = startY;
 
 			wallB = new WallBlock(startX, startY, wallOri, wallSize);
 
+			if (!GetIfWallHere(*wallB))
+			{
+				smallWallPlaced = true;
+			}
+		}			
+
+		//wallB = new WallBlock(startX, startY, wallOri, wallSize);
+
+		if (wallB != NULL)
+		{
 			for (int i = 0; i < wallB->GetLength(); i++)
 			{
 				Wall* pWall = wallB->GetWallBlock(i);
@@ -262,13 +429,6 @@ void GameMap::AddRandomWalls(int cornerX, int cornerY)
 
 			// Push wall block to wallBlocks vector
 			wallBlocks.push_back(wallB);
-		}
-		else
-		{
-			// TODO: Generate one or more small walls
-			int numWalls = rand() % 3 + 1;
-
-
 		}
 	}
 }
@@ -460,6 +620,9 @@ void GameMap::DrawContent()
 {
 	int bg, playerBg, treasureBg, exitBg = 0;
 
+	UpdateTreasureDisplay();
+
+
 	for (int i = 0; i < gold.size(); i++)
 	{
 		bg = GetTileBackground(gold[i]->GetPosition());
@@ -483,12 +646,107 @@ void GameMap::DrawContent()
 	OutputDetectionStr();
 }
 
+/// <summary>
+/// Gets if the player is currently behind a wall that, presuming the player is in an enemy's line of sight, would block this.
+/// </summary>
+/// <param name="currPos">Current enemy position - to relate to player/wall coordinates</param>
+/// <param name="dir">Current direction enemy is facing</param>
+/// <returns>True if an enemy's line of sight would be blocked by a wall</returns>
+bool GameMap::IsPlayerBehindWall(Entity::Position currPos, Enemy::Direction dir)
+{
+	Entity::Position playerPos = pPlayer->GetPosition();
+	Entity::Position currWallPos;
+
+	bool obstructs = false;
+
+	switch (dir)
+	{
+	case (Enemy::NORTH):
+		for (int i = 0; i < walls.size(); i++)
+		{
+			currWallPos = walls[i]->GetPosition();
+
+			if (currWallPos.x == playerPos.x)
+			{
+				if ((currWallPos.y > playerPos.y && currWallPos.y < currPos.y) && (currPos.x == playerPos.x
+					|| ((currPos.x == playerPos.x + 1 || currPos.x == playerPos.x - 1) && currWallPos.y == playerPos.y + 1)))
+				{
+					obstructs = true;
+				}
+			}
+		}
+		break;
+	case (Enemy::SOUTH):
+		for (int i = 0; i < walls.size(); i++)
+		{
+			currWallPos = walls[i]->GetPosition();
+
+			if (currWallPos.x == playerPos.x)
+			{
+				if ((currWallPos.y < playerPos.y && currWallPos.y > currPos.y) && (currPos.x == playerPos.x
+					|| ((currPos.x == playerPos.x + 1 || currPos.x == playerPos.x - 1) && currWallPos.y == playerPos.y - 1)))
+				{
+					obstructs = true;
+				}
+			}
+		}
+		break;
+	case (Enemy::EAST):
+		for (int i = 0; i < walls.size(); i++)
+		{
+			currWallPos = walls[i]->GetPosition();
+
+			if (currWallPos.y == playerPos.y)
+			{
+				if ((currWallPos.x < playerPos.x && currWallPos.x > currPos.x) && (currPos.y == playerPos.y
+					|| ((currPos.y == playerPos.y + 1 || currPos.y == playerPos.y - 1) && currWallPos.x == playerPos.x - 1)))
+				{
+					obstructs = true;
+				}
+			}
+		}
+		break;
+	case (Enemy::WEST):
+		for (int i = 0; i < walls.size(); i++)
+		{
+			currWallPos = walls[i]->GetPosition();
+
+			if (currWallPos.y == playerPos.y)
+			{
+				if ((currWallPos.x > playerPos.x && currWallPos.x < currPos.x) && (currPos.y == playerPos.y
+					|| ((currPos.y == playerPos.y + 1 || currPos.y == playerPos.y - 1) && currWallPos.x == playerPos.x + 1)))
+				{
+					obstructs = true;
+				}
+			}
+		}
+		break;
+	}
+
+	return (obstructs);
+}
+
 void GameMap::UpdateEnemyAwareness(int currTimeMS)
 {
 	Enemy* currEnemy = NULL;
 
 	Tile::TerrainType	terrain;
 	Tile::LightLevel	lightLevel;
+
+	bool checkHearingThisTurn = false;
+
+	static Entity::Position playerPos;
+
+	// If player hasn't moved, don't update as if they've moved on to a different hard tile and caused more noise
+	if (playerPos == pPlayer->GetPosition())
+	{
+		checkHearingThisTurn = false;
+	}
+	else
+	{
+		checkHearingThisTurn = true;
+		playerPos = pPlayer->GetPosition();
+	}
 
 	for (int i = 0; i < enemies.size(); i++)
 	{
@@ -497,12 +755,15 @@ void GameMap::UpdateEnemyAwareness(int currTimeMS)
 		terrain		= pPlayer->GetCurrentTile()->GetTerrainType();
 		lightLevel	= pPlayer->GetCurrentTile()->GetLightLevel();
 
-		if (terrain == Tile::HARD)
+		if (terrain == Tile::HARD && checkHearingThisTurn)
 		{
 			currEnemy->CheckIfInHearingRange(pPlayer->GetPosition(), currTimeMS);
 		}
 
-		currEnemy->CheckIfInLOS(pPlayer->GetPosition(), currTimeMS, lightLevel); // TODO: Currently enemies can see through walls
+		if (!IsPlayerBehindWall(currEnemy->GetPosition(), currEnemy->GetDirection()))
+		{
+			currEnemy->CheckIfInLOS(pPlayer->GetPosition(), currTimeMS, lightLevel);
+		}		
 	}
 }
 
@@ -599,7 +860,11 @@ void GameMap::RequestEnemyKO()
 	}
 }
 
-bool GameMap::RequestTreasureUnlock()
+/// <summary>
+/// Calculates if the player is stood next to the treasure or not.
+/// </summary>
+/// <returns>True if player is directly north/east/south/west of the treasure</returns>
+bool GameMap::PlayerIsNextToTreasure()
 {
 	Entity::Position treasurePos	= pTreasure->GetPosition();
 	Entity::Position playerPos		= pPlayer->GetPosition();
@@ -607,13 +872,32 @@ bool GameMap::RequestTreasureUnlock()
 	// Works out if player is immediately next to the treasure (from any direction)
 	// and also has the key
 	bool nextTo = ((playerPos.x == treasurePos.x + 1)
-					&& (playerPos.y == treasurePos.y))
-					|| ((playerPos.x == treasurePos.x)
-						&& (playerPos.y == treasurePos.y + 1))
-					|| ((playerPos.x == treasurePos.x - 1)
-						&& (playerPos.y == treasurePos.y))
-					|| ((playerPos.x == treasurePos.x)
-						&& (playerPos.y == treasurePos.y - 1));
+		&& (playerPos.y == treasurePos.y))
+		|| ((playerPos.x == treasurePos.x)
+			&& (playerPos.y == treasurePos.y + 1))
+		|| ((playerPos.x == treasurePos.x - 1)
+			&& (playerPos.y == treasurePos.y))
+		|| ((playerPos.x == treasurePos.x)
+			&& (playerPos.y == treasurePos.y - 1));
+
+	return (nextTo);
+}
+
+void GameMap::UpdateTreasureDisplay()
+{
+	if (PlayerIsNextToTreasure())
+	{
+		// Mark treasure as found
+		pTreasure->MarkAsFound(true);
+	}
+}
+
+bool GameMap::RequestTreasureUnlock()
+{
+	Entity::Position treasurePos	= pTreasure->GetPosition();
+	Entity::Position playerPos		= pPlayer->GetPosition();
+
+	bool nextTo = PlayerIsNextToTreasure();
 	
 	if (nextTo)
 	{
@@ -630,8 +914,7 @@ bool GameMap::RequestTreasureUnlock()
 
 				Game::DisplayText(L"You found the treasure! Find the EXIT", Game::statusLineNo, Entity::PINK);
 				Game::DisplayText(L"TREASURE OBTAINED", Game::progressLineNo, 22, true);
-				pPlayer->IncrementGold(100);	// Treasure will be worth 100 gold. 
-												// TODO: Make fixed value?
+				pPlayer->IncrementGold(Game::treasureReward);	// Treasure will be worth 100 gold. 
 
 				Game::DisplayText(L"Gold:  " + to_wstring(pPlayer->GetGold()), Game::goldLineNo, Entity::DARK_YELLOW, true);
 			}
@@ -928,6 +1211,12 @@ bool GameMap::GetIfTraversable(Entity::Position pos, bool updatePlayerTile)
 	return (traversable);
 }
 
+/// <summary>
+/// Gets the colour of the tile's background in the instance an entity is temporarily overwriting it
+/// (e.g. player/enemy walking over different tiles) so as not to change it
+/// </summary>
+/// <param name="pos">Position of the tile in question</param>
+/// <returns>Background colour of the tile at the specified position</returns>
 int GameMap::GetTileBackground(Entity::Position pos)
 {
 	int		bg		= 0;
@@ -1013,6 +1302,9 @@ bool GameMap::PlayerIsBehindEnemy(int& enemyIdx)
 	return (found);
 }
 
+/// <summary>
+/// Initialise Game object
+/// </summary>
 Game::Game()
 {
 	// Make the console cursor invisible
@@ -1186,10 +1478,17 @@ void Game::ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit)
 	}
 }
 
+/// <summary>
+/// Function that displays text to the screen at a specified line.
+/// </summary>
+/// <param name="text">Text to display</param>
+/// <param name="lineNo">Line number to display text at</param>
+/// <param name="colour">Colour of the text</param>
+/// <param name="noRewrite">Optional flag to forcibly indicate that this message is not the same as the previous message on this line</param>
 void Game::DisplayText(wstring text, int lineNo, int colour, bool noRewrite)
 {
-	static wstring last[10]; // Or however many lines max to be used 
-	static int counter[10];  // " "
+	static wstring last[10]; // TODO: Or however many lines max to be used 
+	static int counter[10];  // ^^^
 
 	int idx			= 0;	// Index of last array to place most recent string
 	int realLineNo	= 0;	// Actual console line number
@@ -1362,7 +1661,7 @@ void Game::ShowHelp()
 /// </summary>
 void Game::EndGame()
 {
-	// Delete map, entities etc.
+	// TODO: Delete map, entities etc.
 	// pMap->DestroyEverything();
 	running = false;
 	system("cls");

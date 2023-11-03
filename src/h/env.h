@@ -32,15 +32,17 @@ class Treasure : public Entity
 public:
 	Treasure(int x, int y, ...) : Entity(x, y)
 	{
-		opened = false;
-		passable = false;
+		opened		= false;
+		passable	= false;		
 
-		symbol				= 'X';
-		colour.foreground	= DARK_RED;
+		MarkAsFound(false);
 	}
+
+	void MarkAsFound(bool found);
 
 private:
 	bool opened;
+	bool found;
 };
 
 /// <summary>

@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 
 #include "..\h\enemy.h"
+#include "..\h\game.h"
 
 using namespace std;
 
@@ -65,11 +66,13 @@ void Enemy::SetActive(bool active)
 	if (!active)
 	{
 		colour.foreground = BLUE;
+		passable = true;
 	}
 	else
 	{
+		passable = false;
 		colour.foreground = YELLOW;
-		//alertLevel = SUSPICIOUS;	// Enemy should be in an alerted state when recovering from takedown
+		//alertLevel = SUSPICIOUS;	// TODO: Enemy should be in an alerted state when recovering from takedown?
 	}
 }
 

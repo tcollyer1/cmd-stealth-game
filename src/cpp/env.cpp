@@ -3,6 +3,21 @@
 #include "..\h\env.h"
 #include "..\h\game.h"
 
+void Treasure::MarkAsFound(bool found)
+{
+	if (found)
+	{
+		symbol = 'X';
+		colour.foreground = DARK_RED;
+	}
+	else
+	{
+		symbol = ' ';
+		colour.foreground = BLACK;
+		colour.background = BLACK;
+	}
+}
+
 int Gold::GetValue()
 {
 	return (value);

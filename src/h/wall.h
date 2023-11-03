@@ -40,6 +40,13 @@ public:
 	Position	GetEndPosition();
 	Wall*		GetWallBlock(int idx);
 	int			GetLength();
+	Orientation	GetOrientation();
+	bool		GetIfAdjacent(Position pos);
+	bool		GetIfAtEdge(Position pos);
+
+	static int	GetWallBlockSize(Size sz, Orientation ori);
+
+	static const int wallGap	= 2;
 
 protected:
 	Position		endPosition;
