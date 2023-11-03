@@ -95,9 +95,11 @@ public:
 
 	static const int	hintLineNo		= 1;
 	static const int	goldLineNo		= 2;
+	static const int	progressLineNo	= 3;
 	static const int	statusLineNo	= 4;
 	static const int	alertnessLineNo	= 5;
-	static const int	progressLineNo	= 3;
+	static const int	timerLineNo		= 6;
+
 	static const int	treasureReward	= 100;
 
 	static void DisplayText(wstring text, int lineNo, int colour, bool noRewrite = false);

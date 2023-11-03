@@ -1394,28 +1394,33 @@ void Game::Run()
 			UpdateMap();
 			ProcessGameInput(timeMS);
 
-			// Process if player is at exit here
-			if (pMap->GetIfGameOver())
-			{
-				Sleep(1000);
-				GameOver();
-			}
-			else
-			{
-				if ((iter % 30 == 0) && (iter % 60 != 0))
-				{
-					pMap->UpdateEnemyAwareness(timeMS);
-					// Every 30 game cycles, prepare enemies' next moves and rotate their position accordingly (was every 50)
-					pMap->SetUpEnemyMoves(timeMS);
-				}
-				else if ((iter % 60 == 0))
-				{
-					// Every other 30 game cycles, action next enemy moves
-					pMap->MoveEnemies();
-				}
+			DisplayText(L"Elapsed time:  " + to_wstring(timeMS) + L"ms", timerLineNo, Entity::CYAN, true);
 
-				Sleep(10);		// 10ms delay between map redraws
-				timeMS += 10;	// Increase timer by +10ms
+			// Process if player is at exit here
+			if (running)
+			{
+				if (pMap->GetIfGameOver())
+				{
+					Sleep(3000);
+					GameOver();
+				}
+				else
+				{
+					if ((iter % 30 == 0) && (iter % 60 != 0))
+					{
+						pMap->UpdateEnemyAwareness(timeMS);
+						// Every 30 game cycles, prepare enemies' next moves and rotate their position accordingly (was every 50)
+						pMap->SetUpEnemyMoves(timeMS);
+					}
+					else if ((iter % 60 == 0))
+					{
+						// Every other 30 game cycles, action next enemy moves
+						pMap->MoveEnemies();
+					}
+
+					Sleep(10);		// 10ms delay between map redraws
+					timeMS += 10;	// Increase timer by +10ms
+				}
 			}
 		}
 	}
