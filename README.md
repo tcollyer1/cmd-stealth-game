@@ -1,6 +1,6 @@
 # CMD Stealth
 ## Overview
-CMD Stealth is a command line game written in C++, using Visual Studio 2019 (& 2022) and Windows 10 (64-bit). It's designed to be a top-down stealth game where you, the player, must navigate around the map and attempt to pickpocket enemies in search of the key to the treasure. Once the treasure has been opened and obtained, the player may seek the exit and leave the level. The player must navigate their way around the map and around enemies without alerting them too much - should the game's detection meter fill up, it's game over for the player.
+CMD Stealth is a command line game written in C++, using Visual Studio 2019 (& 2022) and Windows 10 (64-bit). It's designed to be a top-down stealth game where you, the player, must navigate around the map and attempt to pickpocket enemies in search of the key to the treasure. The treasure will be hidden to you at first, and marked as soon as you've found it. Once the treasure has been located, opened and obtained with the key, the player may seek the exit and leave the level. The player must navigate their way around the map and around enemies without alerting them too much - should the game's detection meter fill up, it's game over for the player.
 
 Gold can optionally be collected along the way - and each game is timed to encourage the player to beat the level as quickly as possible. These two things in conjunction will increase the player's score, which they can attempt to beat each time.
 
@@ -9,14 +9,32 @@ Gold can optionally be collected along the way - and each game is timed to encou
 ---
 
 ## Gameplay
+### Key Mechanics
+- enemy detection system - acquiring the player's last known location and moving to it, eventually resetting detection for that enemy when their awareness timer expires
+- ability to lure enemies into other locations using the above mechanic, which can aid with gold collection or looking for the treasure
+- marking the treasure for the player once they have actually found it 
+- full detection means game over
+- tile loudness/brightness system
+- wall & entity-to-entity collision
+- walls blocking enemy line of sight
+- enemy KOs
+- optional gold collection
+- core game progression - obtaining the key, finding the treasure, unlocking the treasure & activating the exit
+- differing sound effects when player steps on a tile of a certain type for audio feedback
+- game timer/scoring system - collecting gold and completing the level faster is encouraged
+- enemy navigation - random movement VS specific movement once they are suspicious of the player either visually or audibly, navigating around other entities and walls
+
+
 ### Tiles
 The walkable tiles on the map have a **light level** and **terrain type** property. Each tile will either be `BRIGHT`, `MEDIUM` or `DARK`, and will also be either `HARD` (`*`) or `SOFT` (`.`).
 
-`BRIGHT` tiles are light grey in colour, where `MEDIUM` and `DARK` tiles are black. `DARK` tiles are completely black - so you won't be able to tell whether it's `HARD` or `SOFT`, to account for some realism.
+`BRIGHT` tiles are light grey in colour, where `MEDIUM` and `DARK` tiles are black. `DARK` tiles are completely black - so you won't be able to tell whether it's `HARD` or `SOFT`, to account for some realism, until you step on it, providing a sound cue.
 
 `BRIGHT` tiles mean the enemy will be able to see you, should you be in their line of sight; `MEDIUM` means it will be more difficult for an enemy to spot you (you must be closer to them to raise suspicion), and `DARK` renders you completely invisible. Should an enemy bump into you, however - you'll be immediately spotted.
 
 `HARD` (`*`) tiles will emit noise when walked on, alerting the enemies audibly when within their hearing range. `SOFT` (`.`) tiles are impossible to hear when walked on and will not alert enemies audibly.
+
+Enemies will approach your last known location each time you raise their suspicion, which will also increase the **detection meter**.
 
 ### Enemies
 In order to navigate the map, you'll need to avoid enemies. Enemies can **see** and **hear** you if you're too close.
@@ -31,7 +49,7 @@ Moving across `DARK` tiles mean the enemy can't **see** you; moving across `SOFT
 
 Sneaking up from behind offers you the opportunity to **pickpocket** or **knock out** the enemy. Knocked out enemies will be unable to move or detect the player and are shown in blue.
 
-You will need to pickpocket the **key** to the treasure (`X`) from one of the enemies - but only one, at random, will have the key. Unlock the treasure and take it to the exit (`E`) to complete the level.
+You will need to pickpocket the **key** to the treasure (`X`) from one of the enemies - but only one, at random, will have the key. Find and unlock the treasure and take it to the exit (`E`) to complete the level.
 
 ## Controls
 | Key | Action |
@@ -39,8 +57,8 @@ You will need to pickpocket the **key** to the treasure (`X`) from one of the en
 | `W/A/S/D` | Movement |
 | `E` | Quit |
 | `H` | Show help |
-| `Space` | Pickpocket enemy / pick up gold piece |
-| `F` | Knock out enemy (from behind) / unlock treasure |
+| `Space` | Pickpocket enemy / pick up gold piece / unlock treasure |
+| `F` | Knock out enemy (from behind) |
 
 ## Map Icons
 | Symbol | Meaning |
