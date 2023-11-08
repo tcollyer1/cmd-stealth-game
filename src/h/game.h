@@ -52,7 +52,7 @@ private:
 	bool	GetIfTraversable(Entity::Position pos, bool updatePlayerTile = false);
 	int		GetTileBackground(Entity::Position pos);
 	void	CalcRandomMove(Entity::Position& newPos, Character::Movement& move);
-	void	CalcSpecificMove(Character::Movement& move, Entity::Position& proposedPos, Entity::Position currPos, Entity::Position targetPos);
+	void	CalcSpecificMove(Character::Movement& move, Entity::Position& proposedPos, Entity::Position currPos, Entity::Position& targetPos, bool& reroute, bool recurse = false);
 
 	bool	PlayerIsBehindEnemy(int& enemyIdx);
 
@@ -66,9 +66,10 @@ private:
 	template<typename T> void	AddEntities(int num, vector<T*> &entitiesVector);
 	template<typename T> T*		AddEntity(T* pEntity, bool optionalFlag = false);
 
-	void	AddRandomWalls(int cornerX, int cornerY);
-	bool	GetIfWallHere(WallBlock wb);
-	bool	IsPlayerBehindWall(Entity::Position currPos, Enemy::Direction dir);
+	void		AddRandomWalls(int cornerX, int cornerY);
+	bool		GetIfWallHere(WallBlock wb);
+	WallBlock*	GetWallBlock(Entity::Position pos);
+	bool		IsPlayerBehindWall(Entity::Position currPos, Enemy::Direction dir);
 
 	int				numEnemies;	// Number of enemies on the map
 

@@ -42,7 +42,6 @@ public:
 
 private:
 	bool opened;
-	bool found;
 };
 
 /// <summary>

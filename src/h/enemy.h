@@ -29,6 +29,8 @@ public:
 
 		playerLastKnownPos.x	= 0;
 		playerLastKnownPos.y	= 0;
+		intermediatePos.x		= 0;
+		intermediatePos.y		= 0;
 		detection				= 0;
 		alertStartTime			= 0;
 
@@ -46,6 +48,9 @@ public:
 	// Player-related functions
 	AlertLevel		GetAlertLevel();
 	Position		GetPlayerLastKnownPos();
+	void			ResetIntermediatePos();
+	void			SetIntermediatePos(Position pos);
+	void			GetIntermediatePos(Position& pos);
 	void			CheckIfInHearingRange(Position pos, int timeMS);
 	void			CheckIfInLOS(Position pos, int timeMS, Tile::LightLevel light);
 	int				GetDetectionLevel();
@@ -58,6 +63,7 @@ private:
 	Direction	dir;
 	Position	nextPos;
 	Position	playerLastKnownPos;
+	Position	intermediatePos;
 	const int	hearingRadius		= 4; // Was 3
 	const int	lineOfSight			= 6; // Was 6
 	int			detection;

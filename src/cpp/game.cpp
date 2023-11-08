@@ -32,7 +32,7 @@ void GameMap::DestroyEverything()
 void GameMap::SetEssentialEntities()
 {
 	/* Generate random in-game walls,
-	 * per quarter of the map. Either 0 walls, 1x large, or up to 2x small
+	 * per quarter of the map. Either 0 walls, 1x large + up to 2x small, or up to 4x small
 	 */
 	AddRandomWalls(topLeft.x, topLeft.y);
 	AddRandomWalls(topRight.x, topRight.y);
@@ -266,11 +266,15 @@ bool GameMap::GetIfWallHere(WallBlock wb)
 
 	while (i < wallBlocks.size() && !isWall)
 	{
+		j = 0;
+
 		// If this wall block has the same orientation, check it
 		if (wallBlocks[i]->GetOrientation() == wb.GetOrientation())
 		{
 			while (j < wb.GetLength() && !isWall)
 			{
+				k = 0;
+
 				// Check none of the proposed blocks in this wall block surround an existing wall
 				if ((wallBlocks[i]->GetIfAdjacent(wb.GetWallBlock(j)->GetPosition()))
 					|| (wallBlocks[i]->GetIfAtEdge(wb.GetWallBlock(j)->GetPosition())))
@@ -282,7 +286,6 @@ bool GameMap::GetIfWallHere(WallBlock wb)
 					while (k < wallBlocks[i]->GetLength() && !isWall)
 					{
 						// Check none of the wall blocks from either wall intersect with each other
-						// TODO: Some walls currently generate right next to others...
 						if ((wb.GetWallBlock(j)->GetPosition() == wallBlocks[i]->GetWallBlock(k)->GetPosition()))
 						{
 							isWall = true;
@@ -1019,24 +1022,71 @@ void GameMap::CalcRandomMove(Entity::Position& newPos, Character::Movement& move
 }
 
 /// <summary>
+/// Returns the wall block, if any, a position is associated with.
+/// </summary>
+/// <param name="pos">Position to check if part of a wall block</param>
+/// <returns>Null if there is no wall block; otherwise a pointer to the relevant wall block with a wall at this position</returns>
+WallBlock* GameMap::GetWallBlock(Entity::Position pos)
+{
+	bool wbFound = false;
+	int i = 0;
+	int j = 0;
+
+	WallBlock* wb = NULL;
+	while (i < wallBlocks.size() && !wbFound)
+	{
+		j = 0;
+		while (j < wallBlocks[i]->GetLength() && !wbFound)
+		{
+			if (wallBlocks[i]->GetWallBlock(j)->GetPosition() == pos)
+			{
+				wb = wallBlocks[i];
+				wbFound = true;
+			}
+
+			j++;
+		}
+
+		i++;
+	}
+
+	return (wb);
+}
+
+/// <summary>
 /// Calculates a move with a specific goal (enemy navigating to last known player location).
 /// </summary>
-/// <param name="move">Stores the movement type.</param>
-/// <param name="proposedPos">Stores the proposed coordinates to move to.</param>
+/// <param name="move">Stores the movement type - assumed by default as NOTHING.</param>
+/// <param name="proposedPos">Stores the proposed coordinates to move to - when passed in, is assumed to match currPos.</param>
 /// <param name="currPos">Enemy's current position.</param>
 /// <param name="targetPos">Enemy's end target position</param>
-void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& proposedPos, Entity::Position currPos, Entity::Position targetPos)
+/// <param name="reroute">
+/// Indicates whether the algorithm has determined an enemy's desired move is obstructed by a wall - so reroute target position to 
+///	the navigate the wall.
+/// </param>
+/// <param name="recurse">Used in case y axis move was desired first and was unable to move, so try an x axis move instead</param>
+void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& proposedPos, Entity::Position currPos, Entity::Position& targetPos, bool& reroute, bool recurse)
 {
-	int xDiff, yDiff;
+	int		xDiff, yDiff;
 
-	bool hasMove = false;
+	bool	hasMove		= false;
+
+	int i = 0;
+	int j = 0;
+
+	WallBlock* wb = NULL;
 
 	xDiff = abs(currPos.x - targetPos.x);
 	yDiff = abs(currPos.y - targetPos.y);
 
+	if (xDiff == 0 && yDiff == 0)
+	{
+		hasMove = true;
+	}
+
 	// If the x difference is smaller than, or the same as, the y difference, try to move left/right
 	// In the event the enemy cannot move in the desired direction here, attempt the y direction
-	if (((xDiff < yDiff || xDiff == yDiff || yDiff == 0) && xDiff != 0))
+	if ((((xDiff < yDiff || xDiff == yDiff || yDiff == 0) && xDiff != 0) || (recurse)))
 	{
 		// Try to move left/right
 		if (targetPos.x < currPos.x)
@@ -1056,9 +1106,45 @@ void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& prop
 		}
 		else
 		{
-			hasMove = false;
-			proposedPos = currPos;
-			move = Character::NOTHING;
+			// Failed to move along x axis, check if due to wall
+			wb = GetWallBlock(proposedPos);
+
+			// If there is a wall obstructing, and it's not at the edge (if at the edge, just move normally by the y axis instead),
+			// check whether to prioritise moving up or down
+			if (wb != NULL && !wb->GetIfAtEdge(proposedPos) && !reroute)
+			{
+				Entity::Position interPos;
+
+				int wallTopDiff = abs(wb->GetPosition().y - proposedPos.y);
+				int wallBtmDiff = abs(wb->GetEndPosition().y - proposedPos.y);
+
+				if (wallTopDiff < wallBtmDiff)
+				{
+					interPos.x = wb->GetPosition().x;
+					interPos.y = wb->GetPosition().y - 1;
+				}
+				else
+				{
+					interPos.x = wb->GetEndPosition().x;
+					interPos.y = wb->GetEndPosition().y + 1;
+				}
+
+				reroute = true;
+
+				proposedPos = currPos;
+				move = Character::NOTHING;
+
+				CalcSpecificMove(move, proposedPos, currPos, interPos, reroute);
+				targetPos = interPos;
+				hasMove = true;
+			}
+			// Else just try the y axis
+			else
+			{
+				hasMove = false;
+				proposedPos = currPos;
+				move = Character::NOTHING;
+			}
 		}		
 	}
 
@@ -1067,24 +1153,22 @@ void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& prop
 	if ((yDiff < xDiff || ((yDiff == 0 && xDiff != 0) || yDiff != 0)) && !hasMove)
 	{
 		// Try to move up/down
-		if (targetPos.y < currPos.y)
+		if (targetPos.y < currPos.y && !recurse)
 		{
 			proposedPos.y--;
 			move = Character::UP;
 		}
-		else
+		else if (!recurse)
 		{
 			proposedPos.y++;
 			move = Character::DOWN;
 		}
-
-		if (!GetIfTraversable(proposedPos))
+		else
 		{
+			// Can't move by desired x or y pos, so attempt to move randomly
 			proposedPos = currPos;
 			move = Character::NOTHING;
 
-			// Reset proposedPos and get a random move instead
-			// TODO: cannot navigate walls
 			CalcRandomMove(proposedPos, move);
 
 			if (!GetIfTraversable(proposedPos))
@@ -1092,6 +1176,52 @@ void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& prop
 				// If still can't move, just have enemy stay where they are
 				proposedPos = currPos;
 				move = Character::NOTHING;
+			}
+		}
+
+		if (!GetIfTraversable(proposedPos) && !recurse)
+		{
+			// Failed to move along y axis, check if due to wall
+			wb = GetWallBlock(proposedPos);
+
+			// If there is a wall obstructing, and it's not at the edge (if at the edge, just move normally by the y axis instead),
+			// check whether to prioritise moving up or down
+			if (wb != NULL && !wb->GetIfAtEdge(proposedPos) && !reroute)
+			{
+				Entity::Position interPos;
+
+				int wallLeftDiff = abs(wb->GetPosition().x - proposedPos.x);
+				int wallRightDiff = abs(wb->GetEndPosition().x - proposedPos.x);
+
+				if (wallLeftDiff < wallRightDiff)
+				{
+					interPos.x = wb->GetPosition().x - 1;
+					interPos.y = wb->GetPosition().y;
+				}
+				else
+				{
+					interPos.x = wb->GetEndPosition().x + 1;
+					interPos.y = wb->GetEndPosition().y;
+				}
+
+				reroute = true;
+
+				proposedPos = currPos;
+				move = Character::NOTHING;
+
+				CalcSpecificMove(move, proposedPos, currPos, interPos, reroute);
+				targetPos = interPos;
+				hasMove = true;
+
+
+			}
+			else
+			{
+				proposedPos = currPos;
+				move = Character::NOTHING;
+
+				// Check x move
+				CalcSpecificMove(move, proposedPos, currPos, targetPos, reroute, true);
 			}
 		}
 	}
@@ -1104,6 +1234,7 @@ void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& prop
 void GameMap::SetUpEnemyMoves(int currTimeMS)
 {
 	Enemy* currEnemy = NULL;
+	bool reroute = false;
 
 	Entity::Position currPos;
 	Entity::Position newPos;
@@ -1132,7 +1263,24 @@ void GameMap::SetUpEnemyMoves(int currTimeMS)
 			{
 				targetPos = currEnemy->GetPlayerLastKnownPos();
 
-				CalcSpecificMove(move, newPos, currPos, targetPos);
+				// If navigating a wall, set target position to the intermediate position
+				currEnemy->GetIntermediatePos(targetPos);
+
+				CalcSpecificMove(move, newPos, currPos, targetPos, reroute);
+
+				if (reroute)
+				{
+					reroute = false;
+					currEnemy->SetIntermediatePos(targetPos);
+				}
+
+				Entity::Position interPos;
+				currEnemy->GetIntermediatePos(interPos);
+
+				if (newPos == interPos)
+				{
+					currEnemy->ResetIntermediatePos();
+				}
 			}
 			else
 			{
@@ -1521,8 +1669,8 @@ void Game::ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit)
 /// <param name="noRewrite">Optional flag to forcibly indicate that this message is not the same as the previous message on this line</param>
 void Game::DisplayText(wstring text, int lineNo, int colour, bool noRewrite)
 {
-	static wstring last[10]; // TODO: Or however many lines max to be used 
-	static int counter[10];  // ^^^
+	static wstring last[10];
+	static int counter[10]; 
 
 	int idx			= 0;	// Index of last array to place most recent string
 	int realLineNo	= 0;	// Actual console line number

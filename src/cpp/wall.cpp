@@ -47,7 +47,7 @@ void WallBlock::SetBlocks()
 			walls.push_back(pWall);
 		}
 
-		endPosition.x = position.x + length;
+		endPosition.x = position.x + (length - 1);
 		endPosition.y = position.y;
 	}
 	else
@@ -59,7 +59,7 @@ void WallBlock::SetBlocks()
 		}
 
 		endPosition.x = position.x;
-		endPosition.y = position.y + length;
+		endPosition.y = position.y + (length - 1);
 	}
 }
 

@@ -106,11 +106,36 @@ Entity::Position Enemy::GetPlayerLastKnownPos()
 	return (playerLastKnownPos);
 }
 
+void Enemy::GetIntermediatePos(Position& pos)
+{
+	if ((!intermediatePos.x == 0) && (!intermediatePos.y == 0))
+	{
+		pos = intermediatePos;
+	}
+}
+
+void Enemy::ResetIntermediatePos()
+{
+	intermediatePos.x = 0;
+	intermediatePos.y = 0;
+}
+
+void Enemy::SetIntermediatePos(Position pos)
+{
+	intermediatePos = pos;
+}
+
 Enemy::Position Enemy::GetNextPos()
 {
 	return (nextPos);
 }
 
+/// <summary>
+/// Gets and does relevant alert level management if the player, given their current position and assuming they have stepped on a 
+/// loud tile, is within the enemy's hearing range.
+/// </summary>
+/// <param name="pos">Player position</param>
+/// <param name="timeMS">Current time - to update how long an enemy should continue to be alerted for</param>
 void Enemy::CheckIfInHearingRange(Entity::Position pos, int timeMS)
 {
 	int		topY	= position.y - hearingRadius;
@@ -287,6 +312,7 @@ void Enemy::ProcessAlertedState(int timeMS, Position playerPosActual)
 	if (timeMS >= alertStartTime + alertTimeDuration && alertLevel == SUSPICIOUS)
 	{
 		ClearDetectionLevel();
+		ResetIntermediatePos();
 		alertLevel		= UNAWARE;
 		alertStartTime	= 0;
 
