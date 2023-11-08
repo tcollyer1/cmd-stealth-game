@@ -72,7 +72,8 @@ void Enemy::SetActive(bool active)
 	{
 		passable = false;
 		colour.foreground = YELLOW;
-		//alertLevel = SUSPICIOUS;	// TODO: Enemy should be in an alerted state when recovering from takedown?
+		//alertLevel = SUSPICIOUS;	
+		// TODO: Enemy should be in an alerted state when recovering from takedown?
 	}
 }
 
