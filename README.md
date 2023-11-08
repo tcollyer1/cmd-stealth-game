@@ -6,6 +6,10 @@ Gold can optionally be collected along the way - and each game is timed to encou
 
 [YouTube walkthrough]() | [Repo](https://github.com/tcollyer1/cmd-stealth-game)
 
+## Resources
+- [ASCII logo generator](https://patorjk.com/software/taag/)
+- [Sound effects](https://www.zapsplat.com) (ZapSplat)
+
 ---
 
 ## Gameplay
