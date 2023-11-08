@@ -19,7 +19,7 @@ using namespace std;
 class GameMap
 {
 public:
-	GameMap(int enemies);
+	GameMap(int enemies, int gold);
 
 	void		SetUpMap();
 	void		DrawContent();
@@ -72,6 +72,7 @@ private:
 	bool		IsPlayerBehindWall(Entity::Position currPos, Enemy::Direction dir);
 
 	int				numEnemies;	// Number of enemies on the map
+	int				goldAmount;	// Number of gold pieces on the map
 
 	Player*			pPlayer;
 	Treasure*		pTreasure;
@@ -122,7 +123,9 @@ private:
 
 	bool		running;
 	bool		gameOpen;
-	int			score;	
+	int			score;
+	const int	numEnemies = 3;
+	const int	goldAmount = 5;
 };
 
 #endif

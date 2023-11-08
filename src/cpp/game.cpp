@@ -54,7 +54,7 @@ void GameMap::SetEssentialEntities()
 	this->enemies.push_back(pE);
 }
 
-GameMap::GameMap(int enemies)
+GameMap::GameMap(int enemies, int gold)
 {
 	topLeft.x = 1;
 	topLeft.y = 1;
@@ -69,12 +69,13 @@ GameMap::GameMap(int enemies)
 	btmRight.y = (height / 2) + 1;
 
 	numEnemies	= enemies;
+	goldAmount	= gold;
 
 	SetEssentialEntities();
 
 	// Populate map with enemies and gold
 	AddEntities<Enemy>(numEnemies - 1, this->enemies); // -1 for the one enemy already on the map
-	AddEntities<Gold>(5, gold);
+	AddEntities<Gold>(goldAmount, this->gold);
 }
 
 /// <summary>
@@ -1548,11 +1549,11 @@ void Game::Run()
 		{
 			if (newGame)
 			{
-				pMap = new GameMap(3);
+				pMap = new GameMap(numEnemies, goldAmount);
 				pMap->SetUpMap();
-				DisplayText(L"H - Show Help  |  E - Quit", hintLineNo, Entity::WHITE);
+				DisplayText(L"H - Show Help  |  E - Quit", hintLineNo, Entity::WHITE, true);
 				DisplayText(L"Gold:  0", goldLineNo, Entity::DARK_YELLOW, true);
-				DisplayText(L"Detection:  [.....]", alertnessLineNo, Entity::GREEN);
+				DisplayText(L"Detection:  [.....]", alertnessLineNo, Entity::GREEN, true);
 			}
 			else
 			{

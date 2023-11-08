@@ -27,8 +27,8 @@ o ......... Gold
 W/A/S/D ....... Move
 E ............. Quit
 H ............. Show help
-SPACE ......... Pickpocket enemy | Pick up gold
-F ............. Knock out enemy (from behind) | Unlock (treasure)
+SPACE ......... Pickpocket enemy | Pick up gold | Unlock (treasure)
+F ............. Knock out enemy (from behind)
 
  =========================
 |   TILES                 |
