@@ -56,7 +56,7 @@ Where you have to get close, make use of the environment around you. Sneak past 
 
 Moving across DARK tiles mean the enemy can't SEE you; moving across SOFT tiles mean the enemy can't HEAR you. One of both ensures complete stealth.
 
-Sneaking up from behind offers you the opportunity to PICKPOCKET or KNOCK OUT the enemy for a time.
+Sneaking up from behind offers you the opportunity to PICKPOCKET or KNOCK OUT the enemy.
 
 
 You will need to pickpocket the KEY to the TREASURE from one of the enemies. Unlock the TREASURE and take it to the EXIT to complete the level.
