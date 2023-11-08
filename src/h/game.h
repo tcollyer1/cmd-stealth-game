@@ -23,7 +23,7 @@ public:
 
 	void		SetUpMap();
 	void		DrawContent();
-	bool		GetIfGameOver();
+	bool		GetIfGameOver(int timeMS, int& score);
 	void		RequestPlayerMove(Character::Movement move, int currTimeMS);
 	void		RequestGoldPickup();
 	void		RequestEnemyKO();
@@ -102,6 +102,7 @@ public:
 	static const int	timerLineNo		= 6;
 
 	static const int	treasureReward	= 100;
+	static const int	multiplier		= 200000; // For calculating score
 
 	static void DisplayText(wstring text, int lineNo, int colour, bool noRewrite = false);
 
@@ -119,8 +120,9 @@ private:
 	void GameOver();
 	void ShowHelp();
 
-	bool	running;
-	bool	gameOpen;
+	bool		running;
+	bool		gameOpen;
+	int			score;	
 };
 
 #endif

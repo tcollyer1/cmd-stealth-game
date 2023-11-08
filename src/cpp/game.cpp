@@ -12,6 +12,9 @@
 
 static HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE); // Global for standard reuse
 
+/// <summary>
+/// Safely destroys all entities on the map and frees up all used memory.
+/// </summary>
 void GameMap::DestroyEverything()
 {
 	int entitiesSize = entities.size();
@@ -29,6 +32,9 @@ void GameMap::DestroyEverything()
 	entities.clear();
 }
 
+/// <summary>
+/// Adds the essential entities to the map - including the player, treasure, exit and randomised walls.
+/// </summary>
 void GameMap::SetEssentialEntities()
 {
 	/* Generate random in-game walls,
@@ -71,6 +77,13 @@ GameMap::GameMap(int enemies)
 	AddEntities<Gold>(5, gold);
 }
 
+/// <summary>
+/// Template function that adds a single entity to the map at a randomised position.
+/// </summary>
+/// <typeparam name="T">Entity type to add</typeparam>
+/// <param name="pEntity">Pointer to the entity to add for storage</param>
+/// <param name="optionalFlag">Optional flag required for some entities (i.e. indicating an enemy with a key)</param>
+/// <returns>Pointer to the entity created</returns>
 template<typename T>
 T* GameMap::AddEntity(T* pEntity, bool optionalFlag)
 {
@@ -182,15 +195,26 @@ void GameMap::WriteEntity(Entity* entity, int background)
 	SetConsoleTextAttribute(handle, Entity::DARK_WHITE); // Reset colour
 }
 
-bool GameMap::GetIfGameOver()
+/// <summary>
+/// Gets whether the game has ended, either due to enemy detection or the player successfully completing the level.
+/// </summary>
+/// <returns>True if parameters for a game ending have been fulfilled</returns>
+bool GameMap::GetIfGameOver(int timeMS, int& score)
 {
-	bool				over		= false;
+	bool	over	= false;
+
+			score	= 0;
+	int		temp	= 0;
+	int		gold	= pPlayer->GetGold();
 
 	Entity::Position	exitPos		= pExit->GetPosition();
 	Entity::Position	playerPos	= pPlayer->GetPosition();
 
 	if (pPlayer->GetTreasureObtained() && (exitPos == playerPos))
 	{
+		temp = Game::multiplier - timeMS;
+		temp = (temp < 0 ? 0 : temp);
+		score = temp + (1 * gold);
 		over = true;
 	}
 	else
@@ -1513,6 +1537,7 @@ void Game::Run()
 
 	while (gameOpen)
 	{
+		score	= 0;
 		running = true;
 		timeMS	= 0;
 		iter	= 0;
@@ -1547,7 +1572,7 @@ void Game::Run()
 			// Process if player is at exit here
 			if (running)
 			{
-				if (pMap->GetIfGameOver())
+				if (pMap->GetIfGameOver(timeMS, score))
 				{
 					Sleep(3000);
 					GameOver();
@@ -1722,8 +1747,7 @@ void Game::DisplayText(wstring text, int lineNo, int colour, bool noRewrite)
 /// </summary>
 /// <returns>Whether new game has been selected or not</returns>
 bool Game::StartMenu()
-{
-	
+{	
 	wstring		currLine;
 	wstring		txt;
 
@@ -1840,17 +1864,50 @@ void Game::ShowHelp()
 	pMap->RedrawMap();
 }
 
+/// <summary>
+/// Handles the end of the game, either closing the program or restarting.
+/// </summary>
 void Game::GameOver()
 {
 	bool selected = false;
 
 	pMap->DestroyEverything();
 
-	wstring userInput;
+	wstring		userInput;
+	wstring		currLine;
+	int			highScore	= 0;
+
+	// Backup title in case banner file has been deleted/moved
+	if (!Game::GetIfFileExists(L"./media/score.txt"))
+	{
+		wofstream scoreOutp("./media/score.txt");
+		scoreOutp << score;
+		scoreOutp.close();
+	}
+	else
+	{
+		wifstream scoreTxt("./media/score.txt");
+
+		getline(scoreTxt, currLine);
+		highScore = stoi(currLine);
+
+		scoreTxt.close();
+	}
+
 
 	while (!selected)
 	{
 		system("cls");
+		if (highScore < score)
+		{
+			wcout << "*** HIGH SCORE ACHIEVED! ***\n";
+
+			wofstream scoreOutp("./media/score.txt");
+			scoreOutp << score;
+			scoreOutp.close();
+		}
+		wcout << "YOUR SCORE: " << to_wstring(score) << "\n";
+		wcout << "HIGH SCORE: " << to_wstring(highScore) << "\n";
 		wcout << "Thanks for playing!\nTry again? (Y/N)\n\n> ";
 		wcin >> userInput;
 
