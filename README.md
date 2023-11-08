@@ -4,6 +4,8 @@ CMD Stealth is a command line game written in C++, using Visual Studio 2019 (& 2
 
 Gold can optionally be collected along the way - and each game is timed to encourage the player to beat the level as quickly as possible. These two things in conjunction will increase the player's score, which they can attempt to beat each time.
 
+![](https://github.com/tcollyer1/cmd-stealth-game/blob/dev/media/game.png)
+
 [YouTube walkthrough]() | [Repo](https://github.com/tcollyer1/cmd-stealth-game)
 
 ## Resources
