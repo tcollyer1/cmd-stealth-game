@@ -30,7 +30,7 @@ bool Player::GetTreasureObtained()
 	return (hasTreasure);
 }
 
-void Player::SetActive(bool active)
+void Player::SetActive(bool active, int timeMS)
 {
 	isActive = active;
 }

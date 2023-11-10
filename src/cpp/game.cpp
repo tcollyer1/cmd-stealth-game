@@ -817,7 +817,7 @@ void GameMap::UpdateEnemyAwareness(int currTimeMS)
 /// </summary>
 /// <param name="move">Movement direction requested</param>
 /// <param name="currTimeMS">The current time elapsed - to determine when to remove enemy alertness</param>
-void GameMap::RequestPlayerMove(Character::Movement move, int currTimeMS)
+void GameMap::RequestPlayerMove(Character::Movement move)
 {
 	Entity::Position oldPos = pPlayer->GetPosition();
 	Entity::Position newPos = pPlayer->CalculatePos(move);
@@ -890,7 +890,7 @@ void GameMap::RequestGoldPickup()
 /// <summary>
 /// Disables the enemy the player is behind (if any).
 /// </summary>
-void GameMap::RequestEnemyKO()
+void GameMap::RequestEnemyKO(int timeMS)
 {
 	int		enemyIndex		= 0;
 	bool	ko				= PlayerIsBehindEnemy(enemyIndex);
@@ -898,10 +898,9 @@ void GameMap::RequestEnemyKO()
 	if (ko && enemies[enemyIndex]->IsActive())
 	{
 		Game::DisplayText(L"Player knocked out an enemy!", Game::statusLineNo, Entity::RED);
-		enemies[enemyIndex]->SetActive(false);
+		enemies[enemyIndex]->SetActive(false, timeMS);
 		enemies[enemyIndex]->ClearDetectionLevel();
-		// TODO: Then a timer should elapse in the game Run() scope (not here) for 10-20 seconds before enemy is set active again?
-		// ...
+		enemies[enemyIndex]->ResetIntermediatePos();
 	}
 }
 
@@ -1324,6 +1323,10 @@ void GameMap::SetUpEnemyMoves(int currTimeMS)
 				currEnemy->SetNextPos(currPos, Character::NOTHING);
 			}			
 		}
+		else
+		{
+			currEnemy->ProcessKOState(currTimeMS);
+		}
 	}
 }
 
@@ -1614,16 +1617,16 @@ void Game::ProcessGameInput(int currTimeMS)
 		switch (_getch())
 		{
 		case 'w':
-			pMap->RequestPlayerMove(Character::UP, currTimeMS);
+			pMap->RequestPlayerMove(Character::UP);
 			break;
 		case 's':
-			pMap->RequestPlayerMove(Character::DOWN, currTimeMS);
+			pMap->RequestPlayerMove(Character::DOWN);
 			break;
 		case 'a':
-			pMap->RequestPlayerMove(Character::LEFT, currTimeMS);
+			pMap->RequestPlayerMove(Character::LEFT);
 			break;
 		case 'd':
-			pMap->RequestPlayerMove(Character::RIGHT, currTimeMS);
+			pMap->RequestPlayerMove(Character::RIGHT);
 			break;
 		case 'e':
 			pMap->DestroyEverything();
@@ -1645,7 +1648,7 @@ void Game::ProcessGameInput(int currTimeMS)
 			}	
 			break;
 		case 'f':
-			pMap->RequestEnemyKO();
+			pMap->RequestEnemyKO(currTimeMS);
 			break;
 		default:
 			break;

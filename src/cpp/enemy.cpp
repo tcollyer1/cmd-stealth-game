@@ -59,7 +59,23 @@ Enemy::Direction Enemy::GetDirection()
 	return (dir);
 }
 
-void Enemy::SetActive(bool active)
+void Enemy::ProcessKOState(int timeMS)
+{
+	if (timeMS >= koStartTime + koTimeDuration && !isActive)
+	{
+		isActive = true;
+		alertLevel = SUSPICIOUS;
+		if (++detection == maxDetection)
+		{
+			// Game over...
+			alertLevel = SPOTTED;
+		}
+
+		alertStartTime = timeMS;
+	}
+}
+
+void Enemy::SetActive(bool active, int timeMS)
 {
 	isActive = active;
 
@@ -67,13 +83,14 @@ void Enemy::SetActive(bool active)
 	{
 		colour.foreground = BLUE;
 		passable = true;
+		koStartTime = timeMS;
 	}
 	else
 	{
+		koStartTime = 0;
 		passable = false;
-		colour.foreground = YELLOW;
-		//alertLevel = SUSPICIOUS;	
-		// TODO: Enemy should be in an alerted state when recovering from takedown?
+		colour.foreground = GREEN;
+		alertLevel = UNAWARE;
 	}
 }
 

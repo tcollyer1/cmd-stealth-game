@@ -33,6 +33,7 @@ public:
 		intermediatePos.y		= 0;
 		detection				= 0;
 		alertStartTime			= 0;
+		koStartTime			= 0;
 
 		UpdateSymbol();
 	}
@@ -40,10 +41,11 @@ public:
 	bool			GetIfHasKey();
 	virtual void	DrawEntity() override;
 	Direction		GetDirection();
-	virtual void	SetActive(bool active) override;
+	virtual void	SetActive(bool active, int timeMS = 0) override;
 	void			SetNextPos(Position pos, Movement move);
 	Position		GetNextPos();
 	void			ProcessAlertedState(int timeMS, Position playerPosActual);
+	void			ProcessKOState(int timeMS);
 
 	// Player-related functions
 	AlertLevel		GetAlertLevel();
@@ -68,8 +70,10 @@ private:
 	const int	lineOfSight			= 6; // Was 6
 	int			detection;
 	int			alertStartTime;
+	int			koStartTime;
 
 	const int	alertTimeDuration	= 5000;
+	const int	koTimeDuration		= 10000;
 	const int	maxDetection		= 6;
 
 	void		UpdateSymbol();

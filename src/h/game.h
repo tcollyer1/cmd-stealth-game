@@ -24,9 +24,9 @@ public:
 	void		SetUpMap();
 	void		DrawContent();
 	bool		GetIfGameOver(int timeMS, int& score);
-	void		RequestPlayerMove(Character::Movement move, int currTimeMS);
+	void		RequestPlayerMove(Character::Movement move);
 	void		RequestGoldPickup();
-	void		RequestEnemyKO();
+	void		RequestEnemyKO(int timeMS);
 	bool		RequestEnemyPickpocket();
 	bool		RequestTreasureUnlock();
 	void		SetUpEnemyMoves(int currTimeMS);

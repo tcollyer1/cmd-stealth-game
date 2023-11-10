@@ -33,7 +33,7 @@ public:
 	void			SetTreasureObtained(bool obtained);
 	bool			GetTreasureObtained();
 
-	virtual void	SetActive(bool active) override;
+	virtual void	SetActive(bool active, int timeMS = 0) override;
 
 	void			UpdateCurrentTile(Tile* t);
 	Tile*			GetCurrentTile();

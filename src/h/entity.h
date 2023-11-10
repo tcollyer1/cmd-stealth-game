@@ -92,7 +92,7 @@ public:
 	Position		CalculatePos(Movement move);
 	void			Move(Position pos);
 	bool			IsActive();
-	virtual void	SetActive(bool active) = 0;
+	virtual void	SetActive(bool active, int timeMS) = 0;
 
 protected:
 	bool	isActive;
