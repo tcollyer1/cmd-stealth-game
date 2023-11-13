@@ -1,3 +1,5 @@
+// enemy.h - class for Enemy entities.
+
 #ifndef ENEMY_H
 #define ENEMY_H
 
@@ -41,7 +43,7 @@ public:
 	bool			GetIfHasKey();
 	virtual void	DrawEntity() override;
 	Direction		GetDirection();
-	virtual void	SetActive(bool active, int timeMS = 0) override;
+	void			SetActive(bool active, int timeMS = 0);
 	void			SetNextPos(Position pos, Movement move);
 	Position		GetNextPos();
 	void			ProcessAlertedState(int timeMS, Position playerPosActual);
@@ -57,8 +59,10 @@ public:
 	void			CheckIfInLOS(Position pos, int timeMS, Tile::LightLevel light);
 	int				GetDetectionLevel();
 	void			ClearDetectionLevel();
+	bool			IsActive();
 
 private:
+	bool	isActive;
 	wstring		strSymbol;	// For Unicode arrow characters
 	AlertLevel	alertLevel;
 	bool		hasKey;

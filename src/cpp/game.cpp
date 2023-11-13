@@ -17,7 +17,7 @@ static HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE); // Global for standard r
 /// </summary>
 void GameMap::DestroyEverything()
 {
-	int entitiesSize = entities.size();
+	int entitiesSize = (int)entities.size();
 
 	for (int i = 0; i < entitiesSize; i++)
 	{
@@ -224,7 +224,7 @@ bool GameMap::GetIfGameOver(int timeMS, int& score)
 		{
 			if (enemies[i]->GetAlertLevel() == Enemy::SPOTTED)
 			{
-				Game::DisplayText(L"GAME OVER...", Game::statusLineNo, Entity::DARK_RED);
+				Game::DisplayText(L"GAME OVER...", Game::statusLineNo, Entity::DARK_RED, true);
 				over = true;
 			}
 		}
@@ -275,8 +275,6 @@ bool GameMap::GetIfWallHere(WallBlock wb)
 
 	int		leftPos		= 0;
 	int		rightPos	= 0;
-
-	Entity::Position currPos;
 
 	if (wb.GetOrientation() == WallBlock::HORIZONTAL)
 	{
@@ -567,6 +565,9 @@ void GameMap::SetUpMap()
 	}
 }
 
+/// <summary>
+/// Handles the display of the player detection meter.
+/// </summary>
 void GameMap::OutputDetectionStr()
 {
 	int				currDetection	= 0;
@@ -624,9 +625,6 @@ void GameMap::OutputDetectionStr()
 void GameMap::RedrawMap()
 {
 	system("cls");
-
-	wstring detectionStr;
-	Entity::Colours detectionStrColour;
 
 	for (int x = 0; x < entities.size(); x++)
 	{
@@ -771,6 +769,10 @@ bool GameMap::IsPlayerBehindWall(Entity::Position currPos, Enemy::Direction dir)
 	return (obstructs);
 }
 
+/// <summary>
+/// Checks for the Player being in any of the enemies' hearing range/line of sight while alerted to update alert levels.
+/// </summary>
+/// <param name="currTimeMS">Current elapsed time in ms</param>
 void GameMap::UpdateEnemyAwareness(int currTimeMS)
 {
 	Enemy* currEnemy = NULL;
@@ -927,6 +929,9 @@ bool GameMap::PlayerIsNextToTreasure()
 	return (nextTo);
 }
 
+/// <summary>
+/// Gets whether to request that the Treasure is displayed on the map or not.
+/// </summary>
 void GameMap::UpdateTreasureDisplay()
 {
 	if (PlayerIsNextToTreasure())
@@ -936,6 +941,10 @@ void GameMap::UpdateTreasureDisplay()
 	}
 }
 
+/// <summary>
+/// Handles the Player unlocking the Treasure.
+/// </summary>
+/// <returns>True if the Treasure was able to be unlocked, false if not</returns>
 bool GameMap::RequestTreasureUnlock()
 {
 	Entity::Position treasurePos	= pTreasure->GetPosition();
@@ -1011,33 +1020,17 @@ bool GameMap::RequestEnemyPickpocket()
 /// <summary>
 /// Calculates a random move (for an enemy).
 /// </summary>
+/// <param name="c">Pointer to the Enemy to calculate a move for.</param>
 /// <param name="newPos">Stores the position the the move would result in.</param>
 /// <param name="move">Stores the movement type.</param>
-void GameMap::CalcRandomMove(Entity::Position& newPos, Character::Movement& move)
+void GameMap::CalcRandomMove(Enemy* c, Entity::Position& newPos, Character::Movement& move)
 {
 	// Get random direction
 	move = Character::Movement(rand() % 5);
 
 	Entity::Position proposedPos = newPos;
 
-	switch (move)
-	{
-	case Character::UP:
-		proposedPos.y--;
-		break;
-	case Character::DOWN:
-		proposedPos.y++;
-		break;
-	case Character::RIGHT:
-		proposedPos.x++;
-		break;
-	case Character::LEFT:
-		proposedPos.x--;
-		break;
-	default:
-		// Default 'NOTHING' case, enemy stays where they are
-		break;
-	}
+	proposedPos = c->CalculatePos(move);
 
 	if (GetIfTraversable(proposedPos))
 	{
@@ -1080,6 +1073,7 @@ WallBlock* GameMap::GetWallBlock(Entity::Position pos)
 /// <summary>
 /// Calculates a move with a specific goal (enemy navigating to last known player location).
 /// </summary>
+/// <param name="c">Pointer to the Enemy to calculate a move for.</param>
 /// <param name="move">Stores the movement type - assumed by default as NOTHING.</param>
 /// <param name="proposedPos">Stores the proposed coordinates to move to - when passed in, is assumed to match currPos.</param>
 /// <param name="currPos">Enemy's current position.</param>
@@ -1089,7 +1083,7 @@ WallBlock* GameMap::GetWallBlock(Entity::Position pos)
 ///	the navigate the wall.
 /// </param>
 /// <param name="recurse">Used in case y axis move was desired first and was unable to move, so try an x axis move instead</param>
-void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& proposedPos, Entity::Position currPos, Entity::Position& targetPos, bool& reroute, bool recurse)
+void GameMap::CalcSpecificMove(Enemy* c, Character::Movement& move, Entity::Position& proposedPos, Entity::Position currPos, Entity::Position& targetPos, bool& reroute, bool recurse)
 {
 	int		xDiff, yDiff;
 
@@ -1158,7 +1152,7 @@ void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& prop
 				proposedPos = currPos;
 				move = Character::NOTHING;
 
-				CalcSpecificMove(move, proposedPos, currPos, interPos, reroute);
+				CalcSpecificMove(c, move, proposedPos, currPos, interPos, reroute);
 				targetPos = interPos;
 				hasMove = true;
 			}
@@ -1193,7 +1187,7 @@ void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& prop
 			proposedPos = currPos;
 			move = Character::NOTHING;
 
-			CalcRandomMove(proposedPos, move);
+			CalcRandomMove(c, proposedPos, move);
 
 			if (!GetIfTraversable(proposedPos))
 			{
@@ -1233,7 +1227,7 @@ void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& prop
 				proposedPos = currPos;
 				move = Character::NOTHING;
 
-				CalcSpecificMove(move, proposedPos, currPos, interPos, reroute);
+				CalcSpecificMove(c, move, proposedPos, currPos, interPos, reroute);
 				targetPos = interPos;
 				hasMove = true;
 
@@ -1245,7 +1239,7 @@ void GameMap::CalcSpecificMove(Character::Movement& move, Entity::Position& prop
 				move = Character::NOTHING;
 
 				// Check x move
-				CalcSpecificMove(move, proposedPos, currPos, targetPos, reroute, true);
+				CalcSpecificMove(c, move, proposedPos, currPos, targetPos, reroute, true);
 			}
 		}
 	}
@@ -1290,7 +1284,7 @@ void GameMap::SetUpEnemyMoves(int currTimeMS)
 				// If navigating a wall, set target position to the intermediate position
 				currEnemy->GetIntermediatePos(targetPos);
 
-				CalcSpecificMove(move, newPos, currPos, targetPos, reroute);
+				CalcSpecificMove(currEnemy, move, newPos, currPos, targetPos, reroute);
 
 				if (reroute)
 				{
@@ -1309,7 +1303,7 @@ void GameMap::SetUpEnemyMoves(int currTimeMS)
 			else
 			{
 				// Get random next move
-				CalcRandomMove(newPos, move);
+				CalcRandomMove(currEnemy, newPos, move);
 			}
 
 			if ((find(usedPositions.begin(), usedPositions.end(), newPos) == usedPositions.end())) // find() points to the last element if not found
@@ -1497,7 +1491,7 @@ bool GameMap::PlayerIsBehindEnemy(int& enemyIdx)
 }
 
 /// <summary>
-/// Initialise Game object
+/// Initialise Game object.
 /// </summary>
 Game::Game()
 {
@@ -1803,7 +1797,7 @@ bool Game::StartMenu()
 		}
 		catch (bool worked)
 		{
-			wcout << "\n\nERROR: failed to get console cursor position";
+			wcout << "\n\nERROR: failed to get console cursor position (" << worked << ")";
 			selected	= true;
 			quit		= true;
 		}

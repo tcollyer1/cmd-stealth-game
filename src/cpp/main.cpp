@@ -8,8 +8,8 @@ using namespace std;
 
 int main()
 {
-    _setmode(_fileno(stdout), _O_U16TEXT);
-    srand(time(NULL));
+    _setmode(_fileno(stdout), _O_U16TEXT); // To allow for unicode characters
+    srand(time((time_t*)NULL)); // To improve the "true" randomness of rand()
 
     wcout << "Loading game...\n";
     Game game;

@@ -3,6 +3,12 @@
 #include "..\h\wall.h"
 #include "..\h\game.h"
 
+/// <summary>
+/// Calculates the size of a WallBlock.
+/// </summary>
+/// <param name="sz">The size (large or small) of the wall block.</param>
+/// <param name="ori">The orientation (horizontal/vertical) of the wall block.</param>
+/// <returns>Length of the wall (number of blocks occupied)</returns>
 int WallBlock::GetWallBlockSize(Size sz, Orientation ori)
 {
 	int len = 0;
@@ -34,6 +40,9 @@ int WallBlock::GetWallBlockSize(Size sz, Orientation ori)
 	return (len);
 }
 
+/// <summary>
+/// Creates Wall sub-objects that make up this WallBlock.
+/// </summary>
 void WallBlock::SetBlocks()
 {
 	Wall* pWall = new Wall(position.x, position.y);
@@ -63,16 +72,28 @@ void WallBlock::SetBlocks()
 	}
 }
 
+/// <summary>
+/// Sets the length in number of blocks of this WallBlock
+/// </summary>
+/// <param name="size">Large/small</param>
 void WallBlock::SetLength(Size size)
 {
 	length = GetWallBlockSize(size, orientation);
 }
 
+/// <summary>
+/// Retrieves the end position of this WallBlock.
+/// </summary>
+/// <returns>Position of last Wall sub-block in this WallBlock</returns>
 Entity::Position WallBlock::GetEndPosition()
 {
 	return (endPosition);
 }
 
+/// <summary>
+/// Retrieves the orientation of this WallBlock.
+/// </summary>
+/// <returns>Horizontal/vertical</returns>
 WallBlock::Orientation WallBlock::GetOrientation()
 {
 	return (orientation);
@@ -85,10 +106,11 @@ WallBlock::Orientation WallBlock::GetOrientation()
 /// <returns>True if adjacent</returns>
 bool WallBlock::GetIfAdjacent(Entity::Position pos)
 {
-	bool	found	= false;
-	bool	isLR	= false;
-	int		i		= 0;
-	int		leftPos, rightPos;
+	bool	found		= false;
+	bool	isLR		= false;
+	int		i			= 0;
+	int		leftPos		= 0;
+	int		rightPos	= 0;
 
 	switch (orientation)
 	{
@@ -162,13 +184,18 @@ bool WallBlock::GetIfAtEdge(Entity::Position pos)
 	return (isAtEdge);
 }
 
+/// <summary>
+/// Retrieves information on a sub-Wall of this WallBlock.
+/// </summary>
+/// <param name="idx">Wall index within wall block</param>
+/// <returns>Pointer to relevant Wall object</returns>
 Wall* WallBlock::GetWallBlock(int idx)
 {
 	int actualIdx = idx;
 
 	if (idx > walls.size())
 	{
-		actualIdx = walls.size() + 1;
+		actualIdx = (int)walls.size() + 1;
 	}
 
 	Wall* w = walls[actualIdx];
@@ -176,6 +203,10 @@ Wall* WallBlock::GetWallBlock(int idx)
 	return (w);
 }
 
+/// <summary>
+/// Returns the size of this WallBlock.
+/// </summary>
+/// <returns>Size in number of blocks</returns>
 int WallBlock::GetLength()
 {
 	return (length);

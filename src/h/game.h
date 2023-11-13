@@ -1,4 +1,4 @@
-// game.h
+// game.h - Game and GameMap class. Used to manage the overall game flow, mechanics and all of the entities
 
 #ifndef GAME_H
 #define GAME_H
@@ -14,7 +14,8 @@
 using namespace std;
 
 /// <summary>
-/// Class that stores information about every entity on the map, including player & enemy positions.
+/// Class that stores information about and controls interaction
+/// between every entity on the map, including player, enemies, walls, gold, etc.
 /// </summary>
 class GameMap
 {
@@ -51,8 +52,8 @@ private:
 	void	WriteEntity(Entity* entity, int background = 0);
 	bool	GetIfTraversable(Entity::Position pos, bool updatePlayerTile = false);
 	int		GetTileBackground(Entity::Position pos);
-	void	CalcRandomMove(Entity::Position& newPos, Character::Movement& move);
-	void	CalcSpecificMove(Character::Movement& move, Entity::Position& proposedPos, Entity::Position currPos, Entity::Position& targetPos, bool& reroute, bool recurse = false);
+	void	CalcRandomMove(Enemy* c, Entity::Position& newPos, Character::Movement& move);
+	void	CalcSpecificMove(Enemy* c, Character::Movement& move, Entity::Position& proposedPos, Entity::Position currPos, Entity::Position& targetPos, bool& reroute, bool recurse = false);
 
 	bool	PlayerIsBehindEnemy(int& enemyIdx);
 

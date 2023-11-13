@@ -6,6 +6,10 @@
 #include "entity.h"
 #include <random>
 
+/// <summary>
+/// Gold piece that the player can interact with to increase their gold count,
+/// and ultimately their score.
+/// </summary>
 class Gold : public Entity
 {
 public:
@@ -32,16 +36,12 @@ class Treasure : public Entity
 public:
 	Treasure(int x, int y, ...) : Entity(x, y)
 	{
-		opened		= false;
 		passable	= false;		
 
 		MarkAsFound(false);
 	}
 
 	void MarkAsFound(bool found);
-
-private:
-	bool opened;
 };
 
 /// <summary>
@@ -52,15 +52,11 @@ class Exit : public Entity
 public:
 	Exit(int x, int y, ...) : Entity(x, y)
 	{
-		triggered			= false;
 		passable			= true;
 
 		symbol				= 'E';
 		colour.foreground	= PINK;
 	}
-
-private:
-	bool triggered;
 };
 
 /// <summary>
