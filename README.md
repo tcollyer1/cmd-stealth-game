@@ -9,9 +9,17 @@ Gold can optionally be collected along the way - and each game is timed to encou
 
 [YouTube walkthrough]() | [Repo](https://github.com/tcollyer1/cmd-stealth-game)
 
-## Resources
+## Resources & Libraries
 - [ASCII logo generator](https://patorjk.com/software/taag/)
 - [Sound effects](https://www.zapsplat.com) (ZapSplat)
+
+No external or special libraries were used, other than the following (standard) additional libraries:
+- **Winmm.lib** (PlaySound function)
+- **conio.h** (console I/O)
+- **fstream/iostream** (file handling)
+- **vector** (vectors)
+- **io.h/fcntl.h** (configuring file mode for Unicode characters)
+- **string**
 
 ---
 
@@ -22,9 +30,10 @@ Gold can optionally be collected along the way - and each game is timed to encou
 - marking the treasure for the player once they have actually found it 
 - full detection means game over
 - tile loudness/brightness system
+- a new, randomly generated map each game - player, treasure, exit, enemy, wall and tile spawns are randomised with each new iteration
 - wall & entity-to-entity collision
 - walls blocking enemy line of sight
-- enemy KOs
+- enemy KOs (for a limited time)
 - optional gold collection
 - core game progression - obtaining the key, finding the treasure, unlocking the treasure & activating the exit
 - differing sound effects when player steps on a tile of a certain type for audio feedback
@@ -54,7 +63,7 @@ Where you have to get close, make use of the environment around you. Sneak past 
 
 Moving across `DARK` tiles mean the enemy can't **see** you; moving across `SOFT` tiles mean the enemy can't **hear** you. One of both ensures complete stealth.
 
-Sneaking up from behind offers you the opportunity to **pickpocket** or **knock out** the enemy. Knocked out enemies will be unable to move or detect the player and are shown in blue.
+Sneaking up from behind offers you the opportunity to **pickpocket** or **knock out** the enemy, for a short duration. Knocked out enemies will be unable to move or detect the player and are shown in blue.
 
 You will need to pickpocket the **key** to the treasure (`X`) from one of the enemies - but only one, at random, will have the key. Find and unlock the treasure and take it to the exit (`E`) to complete the level.
 
