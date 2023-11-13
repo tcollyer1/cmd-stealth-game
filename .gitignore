@@ -2,3 +2,4 @@
 *.user
 Debug/*
 x64/*
+media/score.txt

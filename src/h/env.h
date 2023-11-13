@@ -1,4 +1,4 @@
-// env.h - classes for static environment object, such as walls, floor, treasure etc.
+// env.h - classes for environment objects, such as floor, treasure, exit
 
 #ifndef ENV_H
 #define ENV_H
@@ -6,6 +6,10 @@
 #include "entity.h"
 #include <random>
 
+/// <summary>
+/// Gold piece that the player can interact with to increase their gold count,
+/// and ultimately their score.
+/// </summary>
 class Gold : public Entity
 {
 public:
@@ -30,17 +34,14 @@ private:
 class Treasure : public Entity
 {
 public:
-	Treasure(int x, int y) : Entity(x, y)
+	Treasure(int x, int y, ...) : Entity(x, y)
 	{
-		opened = false;
-		passable = false;
+		passable	= false;		
 
-		symbol				= 'X';
-		colour.foreground	= DARK_RED;
+		MarkAsFound(false);
 	}
 
-private:
-	bool opened;
+	void MarkAsFound(bool found);
 };
 
 /// <summary>
@@ -49,31 +50,12 @@ private:
 class Exit : public Entity
 {
 public:
-	Exit(int x, int y) : Entity(x, y)
+	Exit(int x, int y, ...) : Entity(x, y)
 	{
-		triggered			= false;
 		passable			= true;
 
 		symbol				= 'E';
 		colour.foreground	= PINK;
-	}
-
-private:
-	bool triggered;
-};
-
-/// <summary>
-/// Defines walls (map boundaries).
-/// </summary>
-class Wall : public Entity
-{
-public:
-	Wall(int x, int y) : Entity(x, y)
-	{
-		passable			= false;
-
-		colour.foreground	= WHITE;
-		colour.background	= WHITE;
 	}
 };
 
@@ -93,9 +75,7 @@ public:
 		passable = true;
 
 		DetermineSymbol(terrain, lightLevel);		
-	}
-
-	
+	}	
 
 	TerrainType GetTerrainType();
 	LightLevel	GetLightLevel();

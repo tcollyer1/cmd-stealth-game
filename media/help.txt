@@ -27,8 +27,8 @@ o ......... Gold
 W/A/S/D ....... Move
 E ............. Quit
 H ............. Show help
-SPACE ......... Pickpocket enemy | Pick up gold
-F ............. Knock out enemy (from behind) | Unlock (treasure)
+SPACE ......... Pickpocket enemy | Pick up gold | Unlock (treasure)
+F ............. Knock out enemy (from behind)
 
  =========================
 |   TILES                 |
@@ -38,7 +38,7 @@ The walkable tiles on the map have a BRIGHTNESS and TERRAIN TYPE property. Each 
 
 BRIGHT tiles are light grey in colour, where MEDIUM and DARK tiles are black. DARK tiles are completely black - so you won't be able to tell whether it's HARD or SOFT.
 
-BRIGHT tiles mean the enemy will be able to see you, should you be in their line of sight; MEDIUM means it will take much longer for an enemy to spot you, and DARK renders you completely invisible.
+BRIGHT tiles mean the enemy will be able to see you, should you be in their line of sight; MEDIUM means it will be more difficult for an enemy to spot you, and DARK renders you completely invisible.
 
 HARD (*) tiles will emit noise when walked on, alerting the enemies audibly. SOFT (.) tiles are impossible to hear when walked on by enemies.
 
@@ -48,7 +48,7 @@ HARD (*) tiles will emit noise when walked on, alerting the enemies audibly. SOF
 
 In order to navigate the map, you'll need to avoid enemies. Enemies can SEE and HEAR you if you're too close.
 
-Enemies have three stages of player awareness: UNAWARE, SUSPICIOUS and SPOTTED. Entering an enemy's line of sight on BRIGHT tiles will get you spotted right away, as will moving across HARD tiles too close to an enemy.
+Enemies have three stages of player awareness: UNAWARE, SUSPICIOUS and SPOTTED. Entering an enemy's line of sight on BRIGHT tiles will raise suspicion or even get you spotted right away, as will moving across HARD tiles too close to an enemy.
 
 Make sure to stay outside of an enemy's sight and hearing range where you can.
 
@@ -56,10 +56,10 @@ Where you have to get close, make use of the environment around you. Sneak past 
 
 Moving across DARK tiles mean the enemy can't SEE you; moving across SOFT tiles mean the enemy can't HEAR you. One of both ensures complete stealth.
 
-Sneaking up from behind offers you the opportunity to PICKPOCKET or KNOCK OUT the enemy for a time.
+Sneaking up from behind offers you the opportunity to PICKPOCKET or KNOCK OUT the enemy.
 
 
-You will need to pickpocket the KEY to the TREASURE from one of the enemies; other enemies will carry a small amount of gold. Unlock the TREASURE and take it to the EXIT to complete the level.
+You will need to pickpocket the KEY to the TREASURE from one of the enemies. Unlock the TREASURE and take it to the EXIT to complete the level.
 
 
 GOOD LUCK!

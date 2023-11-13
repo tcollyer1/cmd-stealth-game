@@ -1,4 +1,4 @@
-// entity.h
+// entity.h - base Entity class all map entities inherit from, and base Character class (inherits from Entity) that enemies/the player inherits from.
 
 #ifndef ENTITY_H
 #define ENTITY_H
@@ -7,11 +7,12 @@
 #define MAX_ENEMIES		5
 
 /// <summary>
-/// Basic Entity class - represents any interactible object on the player map, including players, enemies, walls, tiles, treasure etc.
+/// Basic Entity class - represents any object on the player map, including the player, enemies, walls, tiles, treasure etc.
 /// </summary>
 class Entity
 {
 public:
+	// Override for ease of comparing/assigning positions
 	struct Position
 	{
 		bool operator==(const Position& otherPos)
@@ -23,6 +24,7 @@ public:
 		int y;
 	};
 
+	// Console colours
 	enum Colours
 	{
 		BLACK = 0,
@@ -43,6 +45,7 @@ public:
 		WHITE
 	};
 
+	// Console foreground/background colour
 	struct Colour
 	{
 		int foreground;
@@ -85,17 +88,9 @@ class Character : public Entity
 public:
 	enum Movement { UP, DOWN, LEFT, RIGHT, NOTHING };	// Entity movement direction
 
-	Character(int x, int y) : Entity(x, y)
-	{
-		isActive = true;
-	}
+	Character(int x, int y) : Entity(x, y) {};
 	Position		CalculatePos(Movement move);
 	void			Move(Position pos);
-	bool			IsActive();
-	virtual void	SetActive(bool active) = 0;
-
-protected:
-	bool	isActive;
 
 private:
 	Character();

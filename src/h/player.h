@@ -1,4 +1,4 @@
-// player.h
+// player.h - class for the Player entity.
 
 #ifndef PLAYER_H
 #define PLAYER_H
@@ -12,7 +12,7 @@
 class Player : public Character
 {
 public:
-	Player(int x, int y) : Character(x, y)
+	Player(int x, int y, ...) : Character(x, y)
 	{
 		currDetection		= 0;
 		hasKey				= false;
@@ -32,8 +32,6 @@ public:
 
 	void			SetTreasureObtained(bool obtained);
 	bool			GetTreasureObtained();
-
-	virtual void	SetActive(bool active) override;
 
 	void			UpdateCurrentTile(Tile* t);
 	Tile*			GetCurrentTile();
