@@ -770,7 +770,7 @@ bool GameMap::IsPlayerBehindWall(Entity::Position currPos, Enemy::Direction dir)
 }
 
 /// <summary>
-/// Checks for the Player being in any of the enemies' hearing range/line of sight while alerted to update alert levels.
+/// Checks for the Player being in any of the enemies' hearing range/line of sight to update alert levels.
 /// </summary>
 /// <param name="currTimeMS">Current elapsed time in ms</param>
 void GameMap::UpdateEnemyAwareness(int currTimeMS)
