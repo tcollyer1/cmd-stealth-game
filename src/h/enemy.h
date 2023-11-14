@@ -70,8 +70,8 @@ private:
 	Position	nextPos;
 	Position	playerLastKnownPos;
 	Position	intermediatePos;
-	const int	hearingRadius		= 4; // Was 3
-	const int	lineOfSight			= 6; // Was 6
+	const int	hearingRadius		= 4;
+	const int	lineOfSight			= 6;
 	int			detection;
 	int			alertStartTime;
 	int			koStartTime;

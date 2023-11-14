@@ -57,4 +57,32 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Media Include="media\hardtile_1.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
+    <Media Include="media\hardtile_2.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
+    <Media Include="media\hardtile_3.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
+    <Media Include="media\softtile_1.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
+    <Media Include="media\softtile_2.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
+    <Media Include="media\softtile_3.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="media\help.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="media\banner.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+  </ItemGroup>
 </Project>

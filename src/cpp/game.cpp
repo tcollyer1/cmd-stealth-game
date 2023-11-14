@@ -1580,7 +1580,7 @@ void Game::Run()
 					if ((iter % 30 == 0) && (iter % 60 != 0))
 					{
 						pMap->UpdateEnemyAwareness(timeMS);
-						// Every 30 game cycles, prepare enemies' next moves and rotate their position accordingly (was every 50)
+						// Every 30 game cycles, prepare enemies' next moves and rotate their position accordingly
 						pMap->SetUpEnemyMoves(timeMS);
 					}
 					else if ((iter % 60 == 0))

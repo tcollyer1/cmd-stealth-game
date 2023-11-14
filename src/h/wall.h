@@ -48,13 +48,12 @@ public:
 
 	static const int wallGap	= 2;
 
-protected:
+private:
 	Position		endPosition;
 	vector<Wall*>	walls;
 	Orientation		orientation;
 	int				length;
 
-private:
 	WallBlock();
 	void SetBlocks();
 	void SetLength(Size size);

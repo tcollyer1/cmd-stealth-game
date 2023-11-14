@@ -35,6 +35,18 @@
     <ClInclude Include="src\h\player.h" />
     <ClInclude Include="src\h\wall.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Media Include="media\hardtile_1.wav" />
+    <Media Include="media\hardtile_2.wav" />
+    <Media Include="media\hardtile_3.wav" />
+    <Media Include="media\softtile_1.wav" />
+    <Media Include="media\softtile_2.wav" />
+    <Media Include="media\softtile_3.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="media\banner.txt" />
+    <Text Include="media\help.txt" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
