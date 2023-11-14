@@ -14,7 +14,6 @@ class Player : public Character
 public:
 	Player(int x, int y, ...) : Character(x, y)
 	{
-		currDetection		= 0;
 		hasKey				= false;
 		hasTreasure			= false;
 		passable			= false;
@@ -37,7 +36,6 @@ public:
 	Tile*			GetCurrentTile();
 
 private:
-	int		currDetection;
 	bool	hasKey;
 	bool	hasTreasure;
 	int		gold;

@@ -795,12 +795,12 @@ void GameMap::UpdateEnemyAwareness(int currTimeMS)
 		playerPos = pPlayer->GetPosition();
 	}
 
+	terrain		= pPlayer->GetCurrentTile()->GetTerrainType();
+	lightLevel	= pPlayer->GetCurrentTile()->GetLightLevel();
+
 	for (int i = 0; i < enemies.size(); i++)
 	{
 		currEnemy = enemies[i];
-
-		terrain		= pPlayer->GetCurrentTile()->GetTerrainType();
-		lightLevel	= pPlayer->GetCurrentTile()->GetLightLevel();
 
 		if (terrain == Tile::HARD && checkHearingThisTurn)
 		{
@@ -1348,7 +1348,7 @@ void GameMap::MoveEnemies()
 		newPos = currEnemy->GetNextPos();
 
 		// If enemy is going to move - must previously have been on a walkable tile, so therefore replace it with whatever existing tile was there
-		if (!(oldPos == newPos) && currEnemy->IsActive()) // Check if active in the instance an enemy had a move prepared 10 iterations ago but the player has since knocked them out
+		if (!(oldPos == newPos) && currEnemy->IsActive()) // Check if active in the instance an enemy had a move prepared 30 iterations ago but the player has since knocked them out
 		{
 			while (j < tiles.size() && !found)
 			{
