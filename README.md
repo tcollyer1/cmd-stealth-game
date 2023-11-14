@@ -90,7 +90,11 @@ You will need to pickpocket the **key** to the treasure (`X`) from one of the en
 ---
 
 ## UML
-*Flow chart/class diagram here*
+### Class Design Diagram
+![](https://github.com/tcollyer1/cmd-stealth-game/blob/main/media/Class%20Diagram.png)
+
+### Game Activity Diagram/Flow Chart
+![](https://github.com/tcollyer1/cmd-stealth-game/blob/main/media/Flow%20Chart.png)
 
 ## Exception Handling
 The main points of exception handling included:
