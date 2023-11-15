@@ -24,6 +24,9 @@ public:
 	}
 };
 
+/// <summary>
+/// Defines wall blocks, which are in-game walls consisting of multiple single-block Wall objects.
+/// </summary>
 class WallBlock : public Wall
 {
 public:
