@@ -20,6 +20,7 @@ No external or special libraries were used, other than the following (standard) 
 - **vector** (vectors)
 - **io.h/fcntl.h** (configuring file mode for Unicode characters)
 - **string**
+- **filestream** and **sstream** (directory existence checking & creating a string stream for parsing comma separated data in text files)
 
 ---
 
