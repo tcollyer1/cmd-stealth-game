@@ -20,9 +20,10 @@ using namespace std;
 class GameMap
 {
 public:
-	GameMap(int enemies, int gold);
+	GameMap(int enemies, int gold, bool isLoad = false);
 
-	void		SetUpMap();
+	void		SetUpMap(bool& cancel, int& time);
+	bool		LoadProgress(int& timeMS);
 	void		DrawContent();
 	bool		GetIfGameOver(int timeMS, int& score);
 	void		RequestPlayerMove(Character::Movement move);
@@ -33,6 +34,7 @@ public:
 	void		SetUpEnemyMoves(int currTimeMS);
 	void		MoveEnemies();
 	void		RedrawMap();
+	void		SaveAllProgress(int timeMS);
 
 	void		UpdateEnemyAwareness(int currTimeMS);
 
@@ -74,6 +76,7 @@ private:
 
 	int				numEnemies;	// Number of enemies on the map
 	int				goldAmount;	// Number of gold pieces on the map
+	bool			isLoadedGame;
 
 	Player*			pPlayer;
 	Treasure*		pTreasure;
@@ -115,9 +118,9 @@ public:
 private:
 	GameMap* pMap;
 
-	bool StartMenu();														// Initial screen on startup
+	bool StartMenu(bool& loadExisting);														// Initial screen on startup
 	void UpdateMap();														// Set up map etc., call in Run()
-	void ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit);	// Process start screen user input
+	void ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit);// Process start screen user input
 	void ProcessGameInput(int currTimeMS);									// Process user commands
 	void GameOver();
 	void ShowHelp();

@@ -1,9 +1,19 @@
 ﻿#include <iostream>
+#include <string>
 
 #include "..\h\enemy.h"
 #include "..\h\game.h"
 
 using namespace std;
+
+wstring Enemy::SaveDetails()
+{
+	wstring str = to_wstring(position.x) + L"," + to_wstring(position.y) + L"," + to_wstring(hasKey) + L"," + to_wstring(alertLevel) + L"," + to_wstring(nextPos.x) + L"," + to_wstring(nextPos.y) + L","
+		+ to_wstring(dir) + L"," + to_wstring(playerLastKnownPos.x) + L"," + to_wstring(playerLastKnownPos.y) + L"," + to_wstring(intermediatePos.x) + L"," + to_wstring(intermediatePos.y) + L"," 
+		+ to_wstring(detection) + L"," + to_wstring(alertStartTime) + L"," + to_wstring(koStartTime) + L"," + to_wstring(isActive) + L"\n";
+
+	return (str);
+}
 
 /// <summary>
 /// Overriden DrawEntity() function - draws unicode arrow character using a wstring object instead of a char.
@@ -46,18 +56,25 @@ void Enemy::UpdateSymbol()
 		break;
 	}
 
-	switch (alertLevel)
+	if (!isActive)
 	{
-	case UNAWARE:
-		colour.foreground = GREEN;
-		break;
-	case SUSPICIOUS:
-		colour.foreground = DARK_YELLOW;
-		break;
-	case SPOTTED:
-		colour.foreground = RED;
-		break;
+		colour.foreground = BLUE;
 	}
+	else
+	{
+		switch (alertLevel)
+		{
+		case UNAWARE:
+			colour.foreground = GREEN;
+			break;
+		case SUSPICIOUS:
+			colour.foreground = DARK_YELLOW;
+			break;
+		case SPOTTED:
+			colour.foreground = RED;
+			break;
+		}
+	}	
 }
 
 Enemy::Direction Enemy::GetDirection()
@@ -75,6 +92,7 @@ void Enemy::ProcessKOState(int timeMS)
 	{
 		isActive = true;
 		alertLevel = SUSPICIOUS;
+		passable = false;
 		if (++detection == maxDetection)
 		{
 			// Game over...
@@ -90,23 +108,13 @@ void Enemy::ProcessKOState(int timeMS)
 /// </summary>
 /// <param name="active">True to set the enemy to active; false to render them inactive</param>
 /// <param name="timeMS">Current time elapsed in ms</param>
-void Enemy::SetActive(bool active, int timeMS)
+void Enemy::SetInactive(int timeMS)
 {
-	isActive = active;
+	isActive = false;
 
-	if (!active)
-	{
-		colour.foreground = BLUE;
-		passable = true;
-		koStartTime = timeMS;
-	}
-	else
-	{
-		koStartTime = 0;
-		passable = false;
-		colour.foreground = GREEN;
-		alertLevel = UNAWARE;
-	}
+	colour.foreground = BLUE;
+	passable = true;
+	koStartTime = timeMS;
 }
 
 /// <summary>

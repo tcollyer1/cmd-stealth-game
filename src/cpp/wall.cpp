@@ -1,7 +1,22 @@
 #include <windows.h>
+#include <string>
 
 #include "..\h\wall.h"
 #include "..\h\game.h"
+
+wstring Wall::SaveDetails()
+{
+	wstring str = to_wstring(position.x) + L"," + to_wstring(position.y) + L"\n";
+
+	return (str);
+}
+
+wstring WallBlock::SaveDetails()
+{
+	wstring str = to_wstring(position.x) + L"," + to_wstring(position.y) + L"," + to_wstring(orientation) + L"," + to_wstring(size) + L"\n";
+
+	return (str);
+}
 
 /// <summary>
 /// Calculates the size of a WallBlock.
@@ -204,7 +219,7 @@ Wall* WallBlock::GetWallBlock(int idx)
 }
 
 /// <summary>
-/// Returns the size of this WallBlock.
+/// Returns the actual length of this WallBlock.
 /// </summary>
 /// <returns>Size in number of blocks</returns>
 int WallBlock::GetLength()

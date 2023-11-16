@@ -1,7 +1,22 @@
 #include <windows.h>
+#include <string>
 
 #include "..\h\env.h"
 #include "..\h\game.h"
+
+wstring Exit::SaveDetails()
+{
+	wstring str = to_wstring(position.x) + L"," + to_wstring(position.y) + L"\n";
+
+	return (str);
+}
+
+wstring Treasure::SaveDetails()
+{
+	wstring str = to_wstring(position.x) + L"," + to_wstring(position.y) + L"," + to_wstring(found) + L"\n";
+
+	return (str);
+}
 
 /// <summary>
 /// Marks the Treasure on the map once the Player has successfully found it; otherwise keeps it hidden.
@@ -20,6 +35,8 @@ void Treasure::MarkAsFound(bool found)
 		colour.foreground = BLACK;
 		colour.background = BLACK;
 	}
+
+	this->found = found;
 }
 
 /// <summary>
@@ -29,6 +46,20 @@ void Treasure::MarkAsFound(bool found)
 int Gold::GetValue()
 {
 	return (value);
+}
+
+wstring Gold::SaveDetails()
+{
+	wstring str = to_wstring(position.x) + L"," + to_wstring(position.y) + L"\n";
+
+	return (str);
+}
+
+wstring Tile::SaveDetails()
+{
+	wstring str = to_wstring(position.x) + L"," + to_wstring(position.y) + L"," + to_wstring(terrain) + L"," + to_wstring(lightLevel) + L"\n";
+
+	return (str);
 }
 
 /// <summary>

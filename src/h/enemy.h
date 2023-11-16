@@ -35,15 +35,36 @@ public:
 		intermediatePos.y		= 0;
 		detection				= 0;
 		alertStartTime			= 0;
-		koStartTime			= 0;
+		koStartTime				= 0;
+		isActive				= true;
+
+		UpdateSymbol();
+	}
+
+	// Alternate constructor - for a loaded game
+	Enemy(int x, int y, bool hasKey, AlertLevel alert, Position nextPos, Direction direction, Position playerLKPos, Position interPos, int detection, int alertStart, int koStart, bool active) : Character(x, y)
+	{
+		alertLevel				= alert;
+		this->hasKey			= hasKey;
+		passable				= false;
+		this->nextPos			= nextPos;
+
+		playerLastKnownPos		= playerLKPos;
+		intermediatePos			= interPos;
+		this->detection			= detection;
+		alertStartTime			= alertStart;
+		koStartTime				= koStart;
+		isActive				= active;
+		dir						= direction;
 
 		UpdateSymbol();
 	}
 
 	bool			GetIfHasKey();
 	virtual void	DrawEntity() override;
+	virtual wstring SaveDetails();
 	Direction		GetDirection();
-	void			SetActive(bool active, int timeMS = 0);
+	void			SetInactive(int timeMS);
 	void			SetNextPos(Position pos, Movement move);
 	Position		GetNextPos();
 	void			ProcessAlertedState(int timeMS, Position playerPosActual);
@@ -62,7 +83,7 @@ public:
 	bool			IsActive();
 
 private:
-	bool	isActive;
+	bool		isActive;
 	wstring		strSymbol;	// For Unicode arrow characters
 	AlertLevel	alertLevel;
 	bool		hasKey;

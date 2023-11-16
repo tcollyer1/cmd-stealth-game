@@ -3,6 +3,8 @@
 #include <fstream>
 #include <conio.h>
 #include <string>
+#include <filesystem> // For directory checking
+#include <sstream> // String stream - parsing comma separated string
 
 #include "..\h\game.h"
 #include "..\h\env.h"
@@ -12,11 +14,14 @@
 
 static HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE); // Global for standard reuse
 
+using namespace std::filesystem;
+
 /// <summary>
 /// Safely destroys all entities on the map and frees up all used memory.
 /// </summary>
 void GameMap::DestroyEverything()
 {
+
 	int entitiesSize = (int)entities.size();
 
 	for (int i = 0; i < entitiesSize; i++)
@@ -54,7 +59,7 @@ void GameMap::SetEssentialEntities()
 	this->enemies.push_back(pE);
 }
 
-GameMap::GameMap(int enemies, int gold)
+GameMap::GameMap(int enemies, int gold, bool isLoad)
 {
 	topLeft.x = 1;
 	topLeft.y = 1;
@@ -71,11 +76,95 @@ GameMap::GameMap(int enemies, int gold)
 	numEnemies	= enemies;
 	goldAmount	= gold;
 
-	SetEssentialEntities();
+	if (!isLoad)
+	{
+		isLoadedGame = false;
+		SetEssentialEntities();
 
-	// Populate map with enemies and gold
-	AddEntities<Enemy>(numEnemies - 1, this->enemies); // -1 for the one enemy already on the map
-	AddEntities<Gold>(goldAmount, this->gold);
+		// Populate map with enemies and gold
+		AddEntities<Enemy>(numEnemies - 1, this->enemies); // -1 for the one enemy already on the map
+		AddEntities<Gold>(goldAmount, this->gold);
+	}	
+	else
+	{
+		isLoadedGame = true;
+	}
+}
+
+/// <summary>
+/// Function that saves all necessary entity properties to a file in the instance the game is closed,
+/// in order to be reloaded next time should the user choose to load a game.
+/// </summary>
+void GameMap::SaveAllProgress(int timeMS)
+{
+	path dir("data");
+	if (!exists(dir))
+	{
+		if (!create_directory(dir))
+		{
+			wcout << L"\n\nERROR: failed to create directory. Game not saved.\n";
+		}
+	}
+
+	if (exists(dir))
+	{
+		// Border walls/wall block sub-blocks
+		wofstream wallsTxt("./data/walls.txt");
+
+		for (int i = 0; i < walls.size(); i++)
+		{
+			wallsTxt << walls[i]->SaveDetails();
+		}
+		wallsTxt.close();
+
+		// Tiles
+		wofstream tilesTxt("./data/tiles.txt");
+
+		for (int i = 0; i < tiles.size(); i++)
+		{
+			tilesTxt << tiles[i]->SaveDetails();
+		}
+		tilesTxt.close();
+
+		// Wall blocks
+		wofstream wallBlocksTxt("./data/wallBlocks.txt");
+
+		for (int i = 0; i < wallBlocks.size(); i++)
+		{
+			wallBlocksTxt << wallBlocks[i]->SaveDetails();
+		}
+		wallBlocksTxt.close();
+
+		// Gold
+		wofstream goldTxt("./data/gold.txt");
+
+		for (int i = 0; i < gold.size(); i++)
+		{
+			goldTxt << gold[i]->SaveDetails();
+		}
+		goldTxt.close();
+
+		// Enemies
+		wofstream enemiesTxt("./data/enemies.txt");
+
+		for (int i = 0; i < enemies.size(); i++)
+		{
+			enemiesTxt << enemies[i]->SaveDetails();
+		}
+		enemiesTxt.close();
+
+		// Player, treasure and exit
+		wofstream pteTxt("./data/pte.txt");
+		pteTxt << pPlayer->SaveDetails();
+		pteTxt << pTreasure->SaveDetails();
+		pteTxt << pExit->SaveDetails();
+		pteTxt.close();
+
+		// Current time elapsed
+		wofstream timeTxt("./data/time.txt");
+		timeTxt << timeMS;
+		timeTxt.close();
+	}
 }
 
 /// <summary>
@@ -477,92 +566,555 @@ void GameMap::AddRandomWalls(int cornerX, int cornerY)
 }
 
 /// <summary>
+/// Loads all entities from saved data back into the game on game load.
+/// </summary>
+/// <param name="timeMS">Current elapsed time in ms, in order to resume back in the main game loop.</param>
+/// <returns>True if successful, false otherwise</returns>
+bool GameMap::LoadProgress(int& timeMS)
+{
+	bool cancel = false;
+	bool fail = false;
+
+	// Check all game data necessary to load the game is present
+	bool allFilesPresent = Game::GetIfFileExists(L"./data/walls.txt")
+		&& Game::GetIfFileExists(L"./data/tiles.txt")
+		&& Game::GetIfFileExists(L"./data/wallBlocks.txt")
+		&& Game::GetIfFileExists(L"./data/gold.txt")
+		&& Game::GetIfFileExists(L"./data/enemies.txt")
+		&& Game::GetIfFileExists(L"./data/pte.txt")
+		&& Game::GetIfFileExists(L"./data/time.txt");
+
+	if (allFilesPresent)
+	{
+		system("cls");
+
+		string currLine, strObj;
+
+		// TILES
+		ifstream tilesTxt("./data/tiles.txt");
+		while (getline(tilesTxt, currLine) && !fail)
+		{
+			// Extract comma-separated data from the file
+			strObj = currLine;
+
+			string data[4];
+			int j = 0;
+			stringstream stream(strObj);
+			while (stream.good() && !fail && j < 4)
+			{
+				string substr;
+				getline(stream, substr, ',');
+
+				data[j] = substr;
+
+				j++;
+			}
+
+			if (j != 4)
+			{
+				fail = true;
+			}
+
+			if (!fail)
+			{
+				try
+				{
+					Tile* tile = new Tile(stoi(data[0]), stoi(data[1]), (Tile::TerrainType)stoi(data[2]), (Tile::LightLevel)stoi(data[3]));
+					WriteEntity(tile);
+
+					tiles.push_back(tile);
+
+					entities.push_back(tile);
+				}
+				catch (...)
+				{
+					wcout << "\n\nERROR: Save data is corrupted. Please create a new game";
+					fail = true;
+					cancel = true;
+					Sleep(3000);
+				}
+			}
+		}
+		tilesTxt.close();
+
+		// WALLS (will include wall block sub-walls)
+		ifstream wallsTxt("./data/walls.txt");
+		while (getline(wallsTxt, currLine) && !fail)
+		{
+			// Extract comma-separated data from the file
+			strObj = currLine;
+
+			string data[2];
+			int j = 0;
+			stringstream stream(strObj);
+			while (stream.good() && !fail && j < 2)
+			{
+				string substr;
+				getline(stream, substr, ',');
+
+				data[j] = substr;
+
+				j++;
+			}
+
+			if (j != 2)
+			{
+				fail = true;
+			}
+
+			if (!fail)
+			{
+				try
+				{
+					Wall* wall = new Wall(stoi(data[0]), stoi(data[1]));
+					WriteEntity(wall);
+
+					walls.push_back(wall);
+
+					entities.push_back(wall);
+				}
+				catch (...)
+				{
+					wcout << "\n\nERROR: Save data is corrupted. Please create a new game";
+					fail = true;
+					cancel = true;
+					Sleep(3000);
+				}
+			}
+		}
+		wallsTxt.close();
+
+		// WALL BLOCKS
+		ifstream wallBlocksTxt("./data/wallBlocks.txt");
+		while (getline(wallBlocksTxt, currLine) && !fail)
+		{
+			// Extract comma-separated data from the file
+			strObj = currLine;
+
+			string data[4];
+			int j = 0;
+			stringstream stream(strObj);
+			while (stream.good() && !fail && j < 4)
+			{
+				string substr;
+				getline(stream, substr, ',');
+
+				data[j] = substr;
+
+				j++;
+			}
+
+			if (j != 4)
+			{
+				fail = true;
+			}
+
+			if (!fail)
+			{
+				try
+				{
+					WallBlock* wb = new WallBlock(stoi(data[0]), stoi(data[1]), (WallBlock::Orientation)stoi(data[2]), (WallBlock::Size)stoi(data[3]));
+
+					wallBlocks.push_back(wb);
+
+					entities.push_back(wb);
+				}
+				catch (...)
+				{
+					wcout << "\n\nERROR: Save data is corrupted. Please create a new game";
+					fail = true;
+					cancel = true;
+					Sleep(3000);
+				}
+			}
+		}
+		wallBlocksTxt.close();
+
+		// GOLD
+		ifstream goldTxt("./data/gold.txt");
+		while (getline(goldTxt, currLine) && !fail)
+		{
+			// Extract comma-separated data from the file
+			strObj = currLine;
+
+			string data[2];
+			int j = 0;
+			stringstream stream(strObj);
+			while (stream.good() && !fail && j < 2)
+			{
+				string substr;
+				getline(stream, substr, ',');
+
+				data[j] = substr;
+
+				j++;
+			}
+
+			if (j != 2)
+			{
+				fail = true;
+			}
+
+			if (!fail)
+			{
+				try
+				{
+					Gold* g = new Gold(stoi(data[0]), stoi(data[1]));
+
+					gold.push_back(g);
+
+					entities.push_back(g);
+				}
+				catch (...)
+				{
+					wcout << "\n\nERROR: Save data is corrupted. Please create a new game";
+					fail = true;
+					cancel = true;
+					Sleep(3000);
+				}
+			}
+		}
+		goldTxt.close();
+
+		// ENEMIES
+		ifstream enemiesTxt("./data/enemies.txt");
+		while (getline(enemiesTxt, currLine) && !fail)
+		{
+			// Extract comma-separated data from the file
+			strObj = currLine;
+
+			string data[15];
+			int j = 0;
+			stringstream stream(strObj);
+			while (stream.good() && !fail && j < 15)
+			{
+				string substr;
+				getline(stream, substr, ',');
+
+				data[j] = substr;
+
+				j++;
+			}
+
+			if (j != 15)
+			{
+				fail = true;
+			}
+
+			if (!fail)
+			{
+				try
+				{
+					Entity::Position nextPos;
+					Entity::Position playerLKPos;
+					Entity::Position interPos;
+
+					nextPos.x = stoi(data[4]);
+					nextPos.y = stoi(data[5]);
+					playerLKPos.x = stoi(data[7]);
+					playerLKPos.y = stoi(data[8]);
+					interPos.x = stoi(data[9]);
+					interPos.y = stoi(data[10]);
+
+					Enemy* e = new Enemy(stoi(data[0]), stoi(data[1]), (data[2] == "1"), (Enemy::AlertLevel)stoi(data[3]),
+						nextPos, (Enemy::Direction)stoi(data[6]), playerLKPos, interPos, stoi(data[11]), stoi(data[12]), stoi(data[13]),
+						(data[14] == "1"));
+
+					enemies.push_back(e);
+
+					entities.push_back(e);
+				}
+				catch (...)
+				{
+					wcout << "\n\nERROR: Save data is corrupted. Please create a new game";
+					fail = true;
+					cancel = true;
+					Sleep(3000);
+				}
+			}
+		}
+		enemiesTxt.close();
+
+		// EXIT, TREASURE and PLAYER
+		// Player
+		ifstream pteTxt("./data/pte.txt");
+		if (getline(pteTxt, currLine))
+		{
+			// Extract comma-separated data from the file
+			strObj = currLine;
+
+			string data[5];
+			int j = 0;
+			stringstream stream(strObj);
+			while (stream.good() && !fail && j < 5)
+			{
+				string substr;
+				getline(stream, substr, ',');
+
+				data[j] = substr;
+
+				j++;
+			}
+
+			if (j != 5)
+			{
+				fail = true;
+			}
+
+			if (!fail)
+			{
+				try
+				{
+					pPlayer = new Player(stoi(data[0]), stoi(data[1]));
+
+					pPlayer->SetKeyObtained((data[2] == "1"));
+					pPlayer->SetTreasureObtained((data[3] == "1"));
+					pPlayer->IncrementGold(stoi(data[4]));
+
+					entities.push_back(pPlayer);
+
+					int tempIdx = 0;
+					bool found = false;
+					while (tempIdx < tiles.size() && !found)
+					{
+						// Get player current tile
+						if (tiles[tempIdx]->GetPosition() == pPlayer->GetPosition())
+						{
+							pPlayer->UpdateCurrentTile(tiles[tempIdx]);
+							found = true;
+						}
+
+						tempIdx++;
+					}
+
+					// Re-display progress messages, if key/treasure was obtained
+					if (pPlayer->GetKeyObtained() && !pPlayer->GetTreasureObtained())
+					{
+						int colour = Game::GetColourCode(Entity::DARK_YELLOW, Entity::DARK_BLUE);
+						Game::DisplayText(L"KEY OBTAINED", Game::progressLineNo, colour, true);
+					}
+					else if (pPlayer->GetTreasureObtained())
+					{
+						int colour = Game::GetColourCode(Entity::DARK_YELLOW, Entity::DARK_BLUE);
+						Game::DisplayText(L"TREASURE OBTAINED", Game::progressLineNo, colour, true);
+					}
+				}
+				catch (...)
+				{
+					wcout << "\n\nERROR: Save data is corrupted. Please create a new game";
+					fail = true;
+					cancel = true;
+					Sleep(3000);
+				}
+			}
+		}
+		// Treasure
+		if (getline(pteTxt, currLine))
+		{
+			// Extract comma-separated data from the file
+			strObj = currLine;
+
+			string data[3];
+			int j = 0;
+			stringstream stream(strObj);
+			while (stream.good() && !fail && j < 3)
+			{
+				string substr;
+				getline(stream, substr, ',');
+
+				data[j] = substr;
+
+				j++;
+			}
+
+			if (j != 3)
+			{
+				fail = true;
+			}
+
+			if (!fail)
+			{
+				try
+				{
+					pTreasure = new Treasure(stoi(data[0]), stoi(data[1]), (data[2] == "1"));
+
+					entities.push_back(pTreasure);
+				}
+				catch (...)
+				{
+					wcout << "\n\nERROR: Save data is corrupted. Please create a new game";
+					fail = true;
+					cancel = true;
+					Sleep(3000);
+				}
+			}
+		}
+		// Exit
+		if (getline(pteTxt, currLine))
+		{
+			// Extract comma-separated data from the file
+			strObj = currLine;
+
+			string data[2];
+			int j = 0;
+			stringstream stream(strObj);
+			while (stream.good() && !fail && j < 2)
+			{
+				string substr;
+				getline(stream, substr, ',');
+
+				data[j] = substr;
+
+				j++;
+			}
+
+			if (j != 2)
+			{
+				fail = true;
+			}
+
+			if (!fail)
+			{
+				try
+				{
+					pExit = new Exit(stoi(data[0]), stoi(data[1]));
+
+					entities.push_back(pExit);
+				}
+				catch (...)
+				{
+					wcout << "\n\nERROR: Save data is corrupted. Please create a new game";
+					fail = true;
+					cancel = true;
+					Sleep(3000);
+				}
+			}
+		}
+		pteTxt.close();
+
+		ifstream timeTxt("./data/time.txt");
+
+		if (getline(timeTxt, currLine))
+		{
+			timeMS = stoi(currLine);
+		}
+
+		timeTxt.close();
+	}
+	else
+	{
+		wcout << "\n\nERROR: No complete save game data found, could not load game. Please create a new game";
+		cancel = true;
+		Sleep(3000);
+	}
+
+	if (cancel)
+	{
+		// In case we failed halfway through, make sure everything created so far is destroyed
+		DestroyEverything();
+	}
+
+	return (cancel);
+}
+
+/// <summary>
 /// Prepares the basic map including border walls and randomised floor tiles.
 /// </summary>
-void GameMap::SetUpMap()
+void GameMap::SetUpMap(bool& cancel, int& time)
 {
 	int i, x, y;
+
+	cancel = false;
+	bool fail = false;
 
 	Tile::LightLevel	light;
 	Tile::TerrainType	terrain;
 
-	system("cls");
-
-	/* Set up map border walls */
-	for (i = 0; i < width + 2; i++)	// +2 for left/right map boundary
+	if (isLoadedGame)
 	{
-		Wall* wall = new Wall(i, 0);
-		WriteEntity(wall);
-
-		walls.push_back(wall);
-
-		entities.push_back(wall);
+		cancel = LoadProgress(time);
 	}
-	wcout << "\n";
 
-	for (y = 1; y <= height; y++)
+	else
 	{
-		for (x = 0; x <= width + 1; x++)
+		system("cls");
+
+		/* Set up map border walls */
+		for (i = 0; i < width + 2; i++)	// +2 for left/right map boundary
 		{
-			if ((x == 0) || (x == width + 1))
-			{
-				Wall* wall = new Wall(x, y);
-				WriteEntity(wall);
+			Wall* wall = new Wall(i, 0);
+			WriteEntity(wall);
 
-				walls.push_back(wall);
+			walls.push_back(wall);
 
-				entities.push_back(wall);
-			}
-			else
+			entities.push_back(wall);
+		}
+		wcout << "\n";
+
+		for (y = 1; y <= height; y++)
+		{
+			for (x = 0; x <= width + 1; x++)
 			{
-				if (!((x == pPlayer->GetPosition().x) && (y == pPlayer->GetPosition().y)))
+				if ((x == 0) || (x == width + 1))
 				{
-					light	= Tile::LightLevel(rand() % 3);
-					terrain = Tile::TerrainType(rand() % 2);
+					Wall* wall = new Wall(x, y);
+					WriteEntity(wall);
 
-					Tile* tile = new Tile(x, y, terrain, light); // Generate a random tile
+					walls.push_back(wall);
 
-					WriteEntity(tile);
-					tiles.push_back(tile);
-					entities.push_back(tile);
+					entities.push_back(wall);
 				}
-				// Always spawn player initially on a dark tile to prevent unfairness on a new game
 				else
 				{
-					light	= Tile::DARK;
-					terrain = Tile::SOFT;
+					if (!((x == pPlayer->GetPosition().x) && (y == pPlayer->GetPosition().y)))
+					{
+						light = Tile::LightLevel(rand() % 3);
+						terrain = Tile::TerrainType(rand() % 2);
 
-					Tile* tile = new Tile(x, y, terrain, light);
+						Tile* tile = new Tile(x, y, terrain, light); // Generate a random tile
 
-					pPlayer->UpdateCurrentTile(tile);
+						WriteEntity(tile);
+						tiles.push_back(tile);
+						entities.push_back(tile);
+					}
+					// Always spawn player initially on a dark tile to prevent unfairness on a new game
+					else
+					{
+						light = Tile::DARK;
+						terrain = Tile::SOFT;
 
-					WriteEntity(tile);
-					tiles.push_back(tile);
-					entities.push_back(tile);
+						Tile* tile = new Tile(x, y, terrain, light);
+
+						pPlayer->UpdateCurrentTile(tile);
+
+						WriteEntity(tile);
+						tiles.push_back(tile);
+						entities.push_back(tile);
+					}
 				}
-			}			
+			}
+			wcout << '\n';
+		}
+
+		for (i = 0; i < width + 2; i++)
+		{
+			Wall* wall = new Wall(i, height + 1); // +1 for top map boundary
+			WriteEntity(wall);
+
+			walls.push_back(wall);
+
+			entities.push_back(wall);
 		}
 		wcout << '\n';
-	}
 
-	for (i = 0; i < width + 2; i++)
-	{
-		Wall* wall = new Wall(i, height + 1); // +1 for top map boundary
-		WriteEntity(wall);
-
-		walls.push_back(wall);
-
-		entities.push_back(wall);
-	}
-	wcout << '\n';
-
-	for (int i = 0; i < wallBlocks.size(); i++)
-	{
-		for (int w = 0; w < wallBlocks[i]->GetLength(); w++)
+		for (int i = 0; i < wallBlocks.size(); i++)
 		{
-			WriteEntity(wallBlocks[i]->GetWallBlock(w));
+			for (int w = 0; w < wallBlocks[i]->GetLength(); w++)
+			{
+				WriteEntity(wallBlocks[i]->GetWallBlock(w));
+			}
 		}
-	}
+	}	
 }
 
 /// <summary>
@@ -631,7 +1183,7 @@ void GameMap::RedrawMap()
 		WriteEntity(entities[x]);
 	}
 
-	Game::DisplayText(L"H - Show Help  |  E - Quit", Game::hintLineNo, Entity::WHITE, true);
+	Game::DisplayText(L"H - Show Help  |  E - Save + Quit", Game::hintLineNo, Entity::WHITE, true);
 	Game::DisplayText(L"Gold:  " + to_wstring(pPlayer->GetGold()), Game::goldLineNo, Entity::DARK_YELLOW, true);
 	OutputDetectionStr();
 
@@ -687,6 +1239,8 @@ void GameMap::DrawContent()
 	WriteEntity(pPlayer, playerBg);
 
 	OutputDetectionStr();
+
+	Game::DisplayText(L"Gold:  " + to_wstring(pPlayer->GetGold()), Game::goldLineNo, Entity::DARK_YELLOW, true);
 }
 
 /// <summary>
@@ -885,8 +1439,6 @@ void GameMap::RequestGoldPickup()
 	}
 
 	pPlayer->IncrementGold(value);
-
-	Game::DisplayText(L"Gold:  " + to_wstring(pPlayer->GetGold()), Game::goldLineNo, Entity::DARK_YELLOW, true);
 }
 
 /// <summary>
@@ -900,7 +1452,7 @@ void GameMap::RequestEnemyKO(int timeMS)
 	if (ko && enemies[enemyIndex]->IsActive())
 	{
 		Game::DisplayText(L"Player knocked out an enemy!", Game::statusLineNo, Entity::RED);
-		enemies[enemyIndex]->SetActive(false, timeMS);
+		enemies[enemyIndex]->SetInactive(timeMS);
 		enemies[enemyIndex]->ClearDetectionLevel();
 		enemies[enemyIndex]->ResetIntermediatePos();
 	}
@@ -1374,9 +1926,13 @@ void GameMap::MoveEnemies()
 /// <returns>True/false</returns>
 bool GameMap::GetIfTraversable(Entity::Position pos, bool updatePlayerTile)
 {
-	bool traversable	= false;
+	bool traversable	= true;
 	bool found			= false;
 	int i = 0;
+	int tileIdx = 0;
+
+	Tile* pCurrent = NULL;
+
 
 	while (i < (int)entities.size() && !found)
 	{
@@ -1384,16 +1940,23 @@ bool GameMap::GetIfTraversable(Entity::Position pos, bool updatePlayerTile)
 		{
 			traversable = entities[i]->GetIfPassable();
 
-			if (traversable && updatePlayerTile)
+			if (!traversable)
 			{
-				// Update player tile to this new one
-				pPlayer->UpdateCurrentTile((Tile*)entities[i]);
+				found = true;
 			}
-
-			found = true;
+			else
+			{
+				tileIdx = i;
+			}
 		}
 
 		i++;
+	}
+
+	if (!found && updatePlayerTile)
+	{
+		// Update player tile to this new one
+		pPlayer->UpdateCurrentTile((Tile*)entities[tileIdx]);
 	}
 
 	return (traversable);
@@ -1540,17 +2103,37 @@ void Game::Run()
 		timeMS	= 0;
 		iter	= 0;
 
-		bool newGame = StartMenu();
+		bool loadGame = false;
+		bool startGame = StartMenu(loadGame);
 
 		if (running) // If "Quit" not selected at the start menu
 		{
-			if (newGame)
+			if (startGame)
 			{
-				pMap = new GameMap(numEnemies, goldAmount);
-				pMap->SetUpMap();
-				DisplayText(L"H - Show Help  |  E - Quit", hintLineNo, Entity::WHITE, true);
-				DisplayText(L"Gold:  0", goldLineNo, Entity::DARK_YELLOW, true);
-				DisplayText(L"Detection:  [.....]", alertnessLineNo, Entity::GREEN, true);
+				if (!loadGame)
+				{
+					pMap = new GameMap(numEnemies, goldAmount);
+				}
+				else
+				{
+					pMap = new GameMap(numEnemies, goldAmount, true);
+				}
+
+				bool cancel = false;
+
+				pMap->SetUpMap(cancel, timeMS);
+
+				// If game failed to start (e.g. failed game load)
+				if (cancel)
+				{
+					running = false;
+				}
+				else
+				{
+					DisplayText(L"H - Show Help  |  E - Save + Quit", hintLineNo, Entity::WHITE, true);
+					DisplayText(L"Gold:  0", goldLineNo, Entity::DARK_YELLOW, true);
+					DisplayText(L"Detection:  [.....]", alertnessLineNo, Entity::GREEN, true);
+				}				
 			}
 			else
 			{
@@ -1577,13 +2160,13 @@ void Game::Run()
 				}
 				else
 				{
-					if ((iter % 30 == 0) && (iter % 60 != 0))
+					if ((iter % 20 == 0) && (iter % 40 != 0))
 					{
 						pMap->UpdateEnemyAwareness(timeMS);
 						// Every 30 game cycles, prepare enemies' next moves and rotate their position accordingly
 						pMap->SetUpEnemyMoves(timeMS);
 					}
-					else if ((iter % 60 == 0))
+					else if ((iter % 20 == 0))
 					{
 						// Every other 30 game cycles, action next enemy moves
 						pMap->MoveEnemies();
@@ -1623,6 +2206,7 @@ void Game::ProcessGameInput(int currTimeMS)
 			pMap->RequestPlayerMove(Character::RIGHT);
 			break;
 		case 'e':
+			pMap->SaveAllProgress(currTimeMS);
 			pMap->DestroyEverything();
 			running		= false;
 			gameOpen	= false;
@@ -1668,6 +2252,12 @@ void Game::ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit)
 		exit		= false;
 	}
 	else if (option == L"2")
+	{
+		isNewGame	= false;
+		selected	= true;
+		exit		= false;
+	}
+	else if (option == L"3")
 	{
 		isNewGame	= false;
 		selected	= true;
@@ -1723,16 +2313,16 @@ void Game::DisplayText(wstring text, int lineNo, int colour, bool noRewrite)
 	{
 		counter[idx]++;
 
-		wcout << "\r" << text << " (" << to_wstring(counter[idx] + 1) << ")                                   \n";
+		wcout << "\r" << text << " (" << to_wstring(counter[idx] + 1) << ")                                                     \n";
 	}
 	else if (counter[idx] > 0)
 	{
 		counter[idx] = 0;
-		wcout << "\r" << text << "                                   \n";
+		wcout << "\r" << text << "                                                     \n";
 	}
 	else
 	{
-		wcout << "\r" << text << "                                   \n";
+		wcout << "\r" << text << "                                                     \n";
 	}
 
 	last[idx] = text;
@@ -1744,7 +2334,7 @@ void Game::DisplayText(wstring text, int lineNo, int colour, bool noRewrite)
 /// Startup screen, allowing the user to start a new game (or load one?)
 /// </summary>
 /// <returns>Whether new game has been selected or not</returns>
-bool Game::StartMenu()
+bool Game::StartMenu(bool& loadExisting)
 {	
 	wstring		currLine;
 	wstring		txt;
@@ -1752,8 +2342,10 @@ bool Game::StartMenu()
 	bool		selected	= false;
 	bool		isNewGame	= false;
 	bool		quit		= false;
-	bool		startNew	= false;	// Return value
+	bool		startGame	= false;	// Return value
 	bool		worked		= false;	
+
+	loadExisting = false;
 
 	// Backup title in case banner file has been deleted/moved
 	if (!Game::GetIfFileExists(L"./media/banner.txt"))
@@ -1772,7 +2364,7 @@ bool Game::StartMenu()
 		startupTxt.close();
 	}
 
-	txt += L"\n\n  1.\tNew Game\n  2.\tQuit\n";
+	txt += L"\n\n  1.\tNew Game\n  2.\tLoad Game\n  3.\tQuit\n";
 
 	while (!selected)
 	{
@@ -1802,19 +2394,26 @@ bool Game::StartMenu()
 			quit		= true;
 		}
 	}
-
+	if (!quit && selected && !isNewGame)
+	{
+		loadExisting = true;
+		startGame = true;
+	}
 	if (quit)
 	{
-		pMap->DestroyEverything();
+		if (pMap != NULL)
+		{
+			pMap->DestroyEverything();
+		}		
 		running		= false;
 		gameOpen	= false;
 	}
 	else
 	{
-		startNew = isNewGame;
+		startGame = true;
 	}
 
-	return (startNew);
+	return (startGame);
 }
 
 /// <summary>
@@ -1875,7 +2474,6 @@ void Game::GameOver()
 	wstring		currLine;
 	int			highScore	= 0;
 
-	// Backup title in case banner file has been deleted/moved
 	if (!Game::GetIfFileExists(L"./media/score.txt"))
 	{
 		wofstream scoreOutp("./media/score.txt");

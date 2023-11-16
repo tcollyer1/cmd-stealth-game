@@ -22,6 +22,8 @@ public:
 		value				= rand() % 10 + 1;	// Random value between 1 and 10
 	}
 
+	virtual wstring SaveDetails();
+
 	int		GetValue();
 
 private:
@@ -34,14 +36,20 @@ private:
 class Treasure : public Entity
 {
 public:
-	Treasure(int x, int y, ...) : Entity(x, y)
+	Treasure(int x, int y, bool found = false ...) : Entity(x, y)
 	{
-		passable	= false;		
+		passable	= false;	
+		this->found = found;
 
-		MarkAsFound(false);
+		MarkAsFound(found);
 	}
 
+	virtual wstring SaveDetails();
+
 	void MarkAsFound(bool found);
+
+private:
+	bool found;
 };
 
 /// <summary>
@@ -57,6 +65,8 @@ public:
 		symbol				= 'E';
 		colour.foreground	= PINK;
 	}
+
+	virtual wstring SaveDetails();
 };
 
 /// <summary>
@@ -76,6 +86,8 @@ public:
 
 		DetermineSymbol(terrain, lightLevel);		
 	}	
+
+	virtual wstring SaveDetails();
 
 	TerrainType GetTerrainType();
 	LightLevel	GetLightLevel();

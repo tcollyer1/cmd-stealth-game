@@ -3,8 +3,9 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
-#define	ALERT_LEVEL_MAX	2
-#define MAX_ENEMIES		5
+#include <string>
+
+using namespace std;
 
 /// <summary>
 /// Basic Entity class - represents any object on the player map, including the player, enemies, walls, tiles, treasure etc.
@@ -64,6 +65,7 @@ public:
 	Position		GetPosition();
 
 	virtual void	DrawEntity();
+	virtual wstring SaveDetails() = 0;
 
 	void			Destroy();
 

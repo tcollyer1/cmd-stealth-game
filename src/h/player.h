@@ -23,6 +23,8 @@ public:
 		currTile			= NULL;
 	}
 
+	virtual wstring SaveDetails();
+
 	void			IncrementGold(int amount);
 	int				GetGold();
 

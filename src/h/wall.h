@@ -22,6 +22,8 @@ public:
 		colour.foreground = WHITE;
 		colour.background = WHITE;
 	}
+
+	virtual wstring SaveDetails();
 };
 
 /// <summary>
@@ -36,9 +38,12 @@ public:
 	WallBlock(int x, int y, Orientation ori, Size size) : Wall(x, y)
 	{
 		orientation = ori;
+		this->size	= size;
 		SetLength(size);
 		SetBlocks();
 	}
+
+	virtual	wstring SaveDetails();
 
 	Position	GetEndPosition();
 	Wall*		GetWallBlock(int idx);
@@ -56,6 +61,7 @@ private:
 	vector<Wall*>	walls;
 	Orientation		orientation;
 	int				length;
+	Size			size;
 
 	WallBlock();
 	void SetBlocks();

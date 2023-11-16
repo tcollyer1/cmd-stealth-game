@@ -1,5 +1,13 @@
 #include "..\h\player.h"
 
+wstring Player::SaveDetails()
+{
+	wstring str = to_wstring(position.x) + L"," + to_wstring(position.y) + L"," + to_wstring(hasKey) + L"," + to_wstring(hasTreasure) + L","
+		+ to_wstring(gold) + L"\n";
+
+	return (str);
+}
+
 /// <summary>
 /// Increments player gold count by the specified amount.
 /// </summary>
