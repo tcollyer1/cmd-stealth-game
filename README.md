@@ -40,6 +40,7 @@ No external or special libraries were used, other than the following (standard) 
 - differing sound effects when player steps on a tile of a certain type for audio feedback
 - game timer/scoring system - collecting gold and completing the level faster is encouraged
 - enemy navigation - random movement VS specific movement once they are suspicious of the player either visually or audibly, navigating around other entities and walls
+- loading and saving a game, which only works (loading) when necessary files are present
 
 
 ### Tiles
