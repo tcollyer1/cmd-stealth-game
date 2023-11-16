@@ -2163,12 +2163,12 @@ void Game::Run()
 					if ((iter % 20 == 0) && (iter % 40 != 0))
 					{
 						pMap->UpdateEnemyAwareness(timeMS);
-						// Every 30 game cycles, prepare enemies' next moves and rotate their position accordingly
+						// Every 20 game cycles, prepare enemies' next moves and rotate their position accordingly
 						pMap->SetUpEnemyMoves(timeMS);
 					}
 					else if ((iter % 20 == 0))
 					{
-						// Every other 30 game cycles, action next enemy moves
+						// Every other 20 game cycles, action next enemy moves
 						pMap->MoveEnemies();
 					}
 
