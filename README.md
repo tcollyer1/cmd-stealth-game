@@ -7,7 +7,7 @@ Gold can optionally be collected along the way - and each game is timed to encou
 ![](https://github.com/tcollyer1/cmd-stealth-game/blob/main/media/game.png)
 ![](https://github.com/tcollyer1/cmd-stealth-game/blob/main/media/startup.png)
 
-[YouTube walkthrough](https://www.youtube.com/watch?v=ezBTuYP-o9o) | [Repo](https://github.com/tcollyer1/cmd-stealth-game)
+[YouTube walkthrough](https://www.youtube.com/watch?v=bg8OejTgT0o) | [Repo](https://github.com/tcollyer1/cmd-stealth-game)
 
 ## Resources & Libraries
 - [ASCII logo generator](https://patorjk.com/software/taag/)
@@ -20,6 +20,7 @@ No external or special libraries were used, other than the following (standard) 
 - **vector** (vectors)
 - **io.h/fcntl.h** (configuring file mode for Unicode characters)
 - **string**
+- **filestream** and **sstream** (directory existence checking & creating a string stream for parsing comma separated data in text files)
 
 ---
 
@@ -39,6 +40,7 @@ No external or special libraries were used, other than the following (standard) 
 - differing sound effects when player steps on a tile of a certain type for audio feedback
 - game timer/scoring system - collecting gold and completing the level faster is encouraged
 - enemy navigation - random movement VS specific movement once they are suspicious of the player either visually or audibly, navigating around other entities and walls
+- loading and saving a game, which only works (loading) when necessary files are present
 
 
 ### Tiles
