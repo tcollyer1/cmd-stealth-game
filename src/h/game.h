@@ -118,9 +118,9 @@ public:
 private:
 	GameMap* pMap;
 
-	bool StartMenu(bool& loadExisting);														// Initial screen on startup
+	void StartMenu(bool& loadExisting);										// Initial screen on startup
 	void UpdateMap();														// Set up map etc., call in Run()
-	void ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit);// Process start screen user input
+	void ProcessStartupInput(bool& selected, bool& isNewGame, bool& exit);	// Process start screen user input
 	void ProcessGameInput(int currTimeMS);									// Process user commands
 	void GameOver();
 	void ShowHelp();

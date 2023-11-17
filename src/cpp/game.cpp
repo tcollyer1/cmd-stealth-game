@@ -2104,40 +2104,33 @@ void Game::Run()
 		iter	= 0;
 
 		bool loadGame = false;
-		bool startGame = StartMenu(loadGame);
+		StartMenu(loadGame);
 
 		if (running) // If "Quit" not selected at the start menu
 		{
-			if (startGame)
+			if (!loadGame)
 			{
-				if (!loadGame)
-				{
-					pMap = new GameMap(numEnemies, goldAmount);
-				}
-				else
-				{
-					pMap = new GameMap(numEnemies, goldAmount, true);
-				}
-
-				bool cancel = false;
-
-				pMap->SetUpMap(cancel, timeMS);
-
-				// If game failed to start (e.g. failed game load)
-				if (cancel)
-				{
-					running = false;
-				}
-				else
-				{
-					DisplayText(L"H - Show Help  |  E - Save + Quit", hintLineNo, Entity::WHITE, true);
-					DisplayText(L"Gold:  0", goldLineNo, Entity::DARK_YELLOW, true);
-					DisplayText(L"Detection:  [.....]", alertnessLineNo, Entity::GREEN, true);
-				}				
+				pMap = new GameMap(numEnemies, goldAmount);
 			}
 			else
 			{
+				pMap = new GameMap(numEnemies, goldAmount, true);
+			}
+
+			bool cancel = false;
+
+			pMap->SetUpMap(cancel, timeMS);
+
+			// If game failed to start (e.g. failed game load)
+			if (cancel)
+			{
 				running = false;
+			}
+			else
+			{
+				DisplayText(L"H - Show Help  |  E - Save + Quit", hintLineNo, Entity::WHITE, true);
+				DisplayText(L"Gold:  0", goldLineNo, Entity::DARK_YELLOW, true);
+				DisplayText(L"Detection:  [.....]", alertnessLineNo, Entity::GREEN, true);
 			}
 
 		}
@@ -2334,7 +2327,7 @@ void Game::DisplayText(wstring text, int lineNo, int colour, bool noRewrite)
 /// Startup screen, allowing the user to start a new game (or load one?)
 /// </summary>
 /// <returns>Whether new game has been selected or not</returns>
-bool Game::StartMenu(bool& loadExisting)
+void Game::StartMenu(bool& loadExisting)
 {	
 	wstring		currLine;
 	wstring		txt;
@@ -2342,7 +2335,6 @@ bool Game::StartMenu(bool& loadExisting)
 	bool		selected	= false;
 	bool		isNewGame	= false;
 	bool		quit		= false;
-	bool		startGame	= false;	// Return value
 	bool		worked		= false;	
 
 	loadExisting = false;
@@ -2397,7 +2389,6 @@ bool Game::StartMenu(bool& loadExisting)
 	if (!quit && selected && !isNewGame)
 	{
 		loadExisting = true;
-		startGame = true;
 	}
 	if (quit)
 	{
@@ -2408,12 +2399,6 @@ bool Game::StartMenu(bool& loadExisting)
 		running		= false;
 		gameOpen	= false;
 	}
-	else
-	{
-		startGame = true;
-	}
-
-	return (startGame);
 }
 
 /// <summary>
