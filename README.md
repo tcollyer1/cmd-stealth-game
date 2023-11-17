@@ -7,7 +7,7 @@ Gold can optionally be collected along the way - and each game is timed to encou
 ![](https://github.com/tcollyer1/cmd-stealth-game/blob/main/media/game.png)
 ![](https://github.com/tcollyer1/cmd-stealth-game/blob/main/media/startup.png)
 
-[YouTube walkthrough](https://www.youtube.com/watch?v=ezBTuYP-o9o) | [Repo](https://github.com/tcollyer1/cmd-stealth-game)
+[YouTube walkthrough](https://www.youtube.com/watch?v=bg8OejTgT0o) | [Repo](https://github.com/tcollyer1/cmd-stealth-game)
 
 ## Resources & Libraries
 - [ASCII logo generator](https://patorjk.com/software/taag/)
